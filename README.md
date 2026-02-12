@@ -1,5 +1,6 @@
 Still under development. Currently, 4 utilities for POSCAR file manipulation.
 
+
 poscar_d2c
 
 poscar_c2d
@@ -7,6 +8,7 @@ poscar_c2d
 poscar_symmetry
 
 poscar_atom_displace
+
 
 For now, the code is as it is; nothing is guaranteed. 
 
@@ -17,11 +19,18 @@ Adding automatic testing after compilation.
 ----Installation:----
 
 Download from here. Using CMake to compile.
+
 Recommended commands:
+
 mkdir build
+
 cd build
+
 cmake ..
+
 make
+
+------------------------------------------------------
 
 The directory/bin is created with the executables.
 
