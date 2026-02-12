@@ -318,6 +318,9 @@ void POSCAR::displaceAtoms(int n_atoms, AmpMode amp_mode, double amplitude)
 }*/
 
 void POSCAR::toDirect() {
+    if (is_direct)
+        return;
+
     double A[9];
 
     // Copy lattice
@@ -355,6 +358,9 @@ void POSCAR::toDirect() {
 }
 
 void POSCAR::toCartesian() {
+    if (!is_direct)
+        return;
+
     double A[9];
 
     // Flatten lattice (row-major)
