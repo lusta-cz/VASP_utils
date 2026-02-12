@@ -1,31 +1,32 @@
 #include "poscar_file.h"
+
 #include "random_utility.h"
 
-//Linear algebra
+// Linear algebra
 
-#include <lapacke.h>
 #include <cblas.h>
+#include <lapacke.h>
 
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <iomanip>
-#include <algorithm>
-#include <cmath>
-#include <array>
 
-bool POSCAR::skipLines(std::ifstream& file, int n)
-{
+bool POSCAR::skipLines(std::ifstream& file, int n) {
     std::string tmp;
     for (int i = 0; i < n; ++i) {
-        if (!std::getline(file, tmp)) return false;
+        if (!std::getline(file, tmp))
+            return false;
     }
     return true;
 }
 
-bool POSCAR::readPOSCARHeader(const std::string& filename){
+bool POSCAR::readPOSCARHeader(const std::string& filename) {
     std::ifstream file(filename);
     if (!file) {
         std::cerr << "Error: cannot open file " << filename << "\n";
@@ -78,7 +79,7 @@ bool POSCAR::readPOSCARHeader(const std::string& filename){
     return true;
 }
 
-bool POSCAR::readPOSCAROptional(const std::string& filename){
+bool POSCAR::readPOSCAROptional(const std::string& filename) {
     std::ifstream file(filename);
     if (!file) {
         std::cerr << "Error: cannot open file " << filename << "\n";
@@ -97,30 +98,26 @@ bool POSCAR::readPOSCAROptional(const std::string& filename){
     if (line[0] == 'S' || line[0] == 's') {
         selective_dynamics = true;
 
-    // For now selective dynamics is NOT supported!!! Remove if implemented with this keyword!!!
+        // For now selective dynamics is NOT supported!!! Remove if implemented with this keyword!!!
         std::cerr << "Error: selective dynamics is NOT supported yet!\n";
         return false;
 
-
-    // Reading next line (Direct/Cartesian) if Selective dynamic is present
+        // Reading next line (Direct/Cartesian) if Selective dynamic is present
         if (!std::getline(file, line))
             return false;
     } else {
         selective_dynamics = false;
     }
 
-    if (line[0] == 'D' || line[0] == 'd'){
+    if (line[0] == 'D' || line[0] == 'd') {
         is_direct = true;
-        }
-    else
+    } else
         is_direct = false;
-
 
     return true;
 }
 
-bool POSCAR::readPOSCARCoordinates(const std::string& filename)
-{
+bool POSCAR::readPOSCARCoordinates(const std::string& filename) {
     std::ifstream file(filename);
     if (!file) {
         std::cerr << "Error: cannot open file " << filename << "\n";
@@ -151,9 +148,7 @@ bool POSCAR::readPOSCARCoordinates(const std::string& filename)
         }
 
         std::istringstream iss(line);
-        if (!(iss >> coordinates[i].x
-                  >> coordinates[i].y
-                  >> coordinates[i].z)) {
+        if (!(iss >> coordinates[i].x >> coordinates[i].y >> coordinates[i].z)) {
             std::cerr << "Error: failed to parse coordinates for atom " << i << "\n";
             return false;
         }
@@ -162,9 +157,7 @@ bool POSCAR::readPOSCARCoordinates(const std::string& filename)
     return true;
 }
 
-
-
-bool POSCAR::readPOSCAR(const std::string& filename){
+bool POSCAR::readPOSCAR(const std::string& filename) {
     if (!readPOSCARHeader(filename)) {
         std::cerr << "Error: reading POSCAR header from " << filename << "\n";
         return false;
@@ -189,10 +182,7 @@ bool POSCAR::readPOSCAR(const std::string& filename){
     return true;
 }
 
-
-
-bool POSCAR::writePOSCAR(const std::string& filenameOut){
-
+bool POSCAR::writePOSCAR(const std::string& filenameOut) {
     std::ifstream fileTest(filenameOut);
     if (fileTest.good()) {
         std::cerr << "Warning: file \"" << filenameOut << "\" already exists and will be overwritten.\n";
@@ -212,10 +202,8 @@ bool POSCAR::writePOSCAR(const std::string& filenameOut){
 
     // Writing Lines 3-5: lattice vectors
     for (int i = 0; i < 3; ++i)
-        file << std::fixed << std::setprecision(10)
-             << lattice[i][0] << " "
-             << lattice[i][1] << " "
-             << lattice[i][2] << "\n";
+        file << std::fixed << std::setprecision(10) << lattice[i][0] << " " << lattice[i][1] << " " << lattice[i][2]
+             << "\n";
 
     // Writing Line 6: element symbols
     for (size_t i = 0; i < elements.size(); ++i)
@@ -236,15 +224,13 @@ bool POSCAR::writePOSCAR(const std::string& filenameOut){
 
     // Writing Atomic coordinates
     for (size_t i = 0; i < coordinates.size(); ++i)
-        file << std::fixed << std::setprecision(10)
-             << coordinates[i].x << " "
-             << coordinates[i].y << " "
+        file << std::fixed << std::setprecision(10) << coordinates[i].x << " " << coordinates[i].y << " "
              << coordinates[i].z << "\n";
 
     // TO DO for Selective dynamics: include selective dynamics flags if needed
 
     file.flush();
-        if (!file) {
+    if (!file) {
         std::cerr << "Error: failed writing to " << filenameOut << "\n";
         return false;
     }
@@ -254,26 +240,26 @@ bool POSCAR::writePOSCAR(const std::string& filenameOut){
     return true;
 }
 
-
-void POSCAR::displaceAtom(size_t atom_index, double amplitude){
-    if (atom_index >= coordinates.size()) return;
-
+void POSCAR::displaceAtom(size_t atom_index, double amplitude) {
+    if (atom_index >= coordinates.size())
+        return;
 
     // Generate random vector and normalize it
     double ex = randomDouble(-1.0, 1.0);
     double ey = randomDouble(-1.0, 1.0);
     double ez = randomDouble(-1.0, 1.0);
 
-    double norm = std::sqrt(ex*ex+ey*ey+ez*ez);
+    double norm = std::sqrt(ex * ex + ey * ey + ez * ez);
 
-    if (norm < 1e-12) return;
+    if (norm < 1e-12)
+        return;
 
-    ex = (ex/norm);
-    ey = (ey/norm);
-    ez = (ez/norm);
+    ex = (ex / norm);
+    ey = (ey / norm);
+    ez = (ez / norm);
 
-
-    // Generate random norm of the random vector, cubicroot needed for uniform representation of volume due to expanding sphere with r^3
+    // Generate random norm of the random vector, cubicroot needed for uniform representation of volume due to expanding
+    // sphere with r^3
 
     double r = amplitude * std::cbrt(randomDouble(0.0, 1.0));
 
@@ -283,8 +269,7 @@ void POSCAR::displaceAtom(size_t atom_index, double amplitude){
     coordinates[atom_index].z += ez * r;
 }
 
-void POSCAR::displaceAtoms(int n_atoms, double amplitude)
-{
+void POSCAR::displaceAtoms(int n_atoms, double amplitude) {
     // Create vector with numbers from 0 to total_atoms-1 and then doing random permutation
     std::vector<size_t> indices(total_atoms);
     for (int i = 0; i < total_atoms; ++i)
@@ -299,13 +284,13 @@ void POSCAR::displaceAtoms(int n_atoms, double amplitude)
 
     // Displace selected atoms
     for (int i = 0; i < n_atoms; ++i) {
-        displaceAtom(indices[i], amplitude); // already Cartesian
+        displaceAtom(indices[i], amplitude);  // already Cartesian
     }
 
     // Convert back to Direct if needed
-    if (was_direct) toDirect();
+    if (was_direct)
+        toDirect();
 }
-
 
 /*
 OLD version
@@ -332,14 +317,13 @@ void POSCAR::displaceAtoms(int n_atoms, AmpMode amp_mode, double amplitude)
 
 }*/
 
-void POSCAR::toDirect()
-{
+void POSCAR::toDirect() {
     double A[9];
 
     // Copy lattice
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
-            A[i*3 + j] = lattice[i][j];
+            A[i * 3 + j] = lattice[i][j];
 
     lapack_int ipiv[3];
 
@@ -357,20 +341,10 @@ void POSCAR::toDirect()
 
     // Transform coordinates
     for (auto& atom : coordinates) {
-
-        double x[3] = { atom.x, atom.y, atom.z };
+        double x[3] = {atom.x, atom.y, atom.z};
         double y[3];
 
-        cblas_dgemv(
-            CblasRowMajor,
-            CblasNoTrans,
-            3, 3,
-            1.0,
-            A, 3,
-            x, 1,
-            0.0,
-            y, 1
-        );
+        cblas_dgemv(CblasRowMajor, CblasNoTrans, 3, 3, 1.0, A, 3, x, 1, 0.0, y, 1);
 
         atom.x = y[0];
         atom.y = y[1];
@@ -380,31 +354,19 @@ void POSCAR::toDirect()
     is_direct = true;
 }
 
-
-void POSCAR::toCartesian()
-{
+void POSCAR::toCartesian() {
     double A[9];
 
     // Flatten lattice (row-major)
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
-            A[i*3 + j] = lattice[i][j];
+            A[i * 3 + j] = lattice[i][j];
 
     for (auto& atom : coordinates) {
-
-        double x[3] = { atom.x, atom.y, atom.z };
+        double x[3] = {atom.x, atom.y, atom.z};
         double y[3];
 
-        cblas_dgemv(
-            CblasRowMajor,
-            CblasNoTrans,
-            3, 3,
-            1.0,
-            A, 3,
-            x, 1,
-            0.0,
-            y, 1
-        );
+        cblas_dgemv(CblasRowMajor, CblasNoTrans, 3, 3, 1.0, A, 3, x, 1, 0.0, y, 1);
 
         atom.x = y[0];
         atom.y = y[1];

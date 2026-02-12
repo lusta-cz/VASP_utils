@@ -1,17 +1,18 @@
 #include "symmetry.h"
-#include "poscar_file.h"
 
-#include <iostream>
-#include <iomanip>
-#include <vector>
-#include <memory>
 #include <spglib.h>
+
+#include <iomanip>
+#include <iostream>
 #include <map>
+#include <memory>
 #include <optional>
 #include <set>
+#include <vector>
 
-SpglibDatasetPtr analyzeSymmetry(const POSCAR& poscar,  const double& symprec)
-{
+#include "poscar_file.h"
+
+SpglibDatasetPtr analyzeSymmetry(const POSCAR& poscar, const double& symprec) {
     // Make a copy in fractional coordinates
     POSCAR poscarDirect = poscar;
     if (!poscarDirect.is_direct) {
@@ -37,7 +38,7 @@ SpglibDatasetPtr analyzeSymmetry(const POSCAR& poscar,  const double& symprec)
     // Prepare atomic types
     int types[num_atoms];
     int type_counter = 1;
-    std::map<std::string,int> element_map;
+    std::map<std::string, int> element_map;
 
     for (size_t i = 0, idx = 0; i < poscarDirect.elements.size(); ++i) {
         const std::string& el = poscarDirect.elements[i];
@@ -53,8 +54,7 @@ SpglibDatasetPtr analyzeSymmetry(const POSCAR& poscar,  const double& symprec)
     return SpglibDatasetPtr(dataset, &spg_free_dataset);
 }
 
-std::optional<POSCAR> makePrimitiveCell(const POSCAR& poscar, const double& symprec)
-{
+std::optional<POSCAR> makePrimitiveCell(const POSCAR& poscar, const double& symprec) {
     // 1) Copy and ensure fractional coordinates
     POSCAR poscarDirect = poscar;
     if (!poscarDirect.is_direct) {
@@ -89,16 +89,10 @@ std::optional<POSCAR> makePrimitiveCell(const POSCAR& poscar, const double& symp
     }
 
     // 3) Call spglib primitive finder
-    int num_prim = spg_find_primitive(
-        lattice,
-        positions,
-        types,
-        num_atoms,
-        symprec
-    );
+    int num_prim = spg_find_primitive(lattice, positions, types, num_atoms, symprec);
 
     if (num_prim <= 0) {
-        return std::nullopt; // failed
+        return std::nullopt;  // failed
     }
 
     // 4) Build POSCAR from arrays now holding primitive cell
@@ -127,7 +121,7 @@ std::optional<POSCAR> makePrimitiveCell(const POSCAR& poscar, const double& symp
 
     std::map<std::string, int> elem_counts;
     for (int i = 0; i < num_prim; ++i)
-        elem_counts[reverse_map[ types[i] ]]++;
+        elem_counts[reverse_map[types[i]]]++;
 
     prim.elements.clear();
     prim.num_atoms.clear();
@@ -139,10 +133,7 @@ std::optional<POSCAR> makePrimitiveCell(const POSCAR& poscar, const double& symp
     return prim;
 }
 
-
-
-void printSymmetryInfo(const SpglibDataset& dataset, const bool& wyckoff, const bool& symoperation)
-{
+void printSymmetryInfo(const SpglibDataset& dataset, const bool& wyckoff, const bool& symoperation) {
     std::cout << "=== Symmetry Information ===\n";
 
     // Space group
@@ -158,43 +149,35 @@ void printSymmetryInfo(const SpglibDataset& dataset, const bool& wyckoff, const 
     // Symmetry operations
     std::cout << "\nNumber of symmetry operations: " << dataset.n_operations << "\n";
 
-    if(symoperation)
+    if (symoperation)
         printSymmetryOperations(dataset);
 
-        // Compute number of irreducible atoms
+    // Compute number of irreducible atoms
     std::set<int> irreducible_atoms;
     for (int i = 0; i < dataset.n_atoms; ++i)
         irreducible_atoms.insert(dataset.equivalent_atoms[i]);
 
-    std::cout << "\nNumber of Wyckoff positions (irreducible atoms): "
-              << irreducible_atoms.size() << "\n";
+    std::cout << "\nNumber of Wyckoff positions (irreducible atoms): " << irreducible_atoms.size() << "\n";
 
     // Print Wyckoff letters for each atom
-    if(wyckoff){
+    if (wyckoff) {
         std::cout << "Wyckoff letters: ";
         for (int i = 0; i < dataset.n_atoms; ++i) {
-            char wyckoff_letter = 'a' + dataset.wyckoffs[i]; // convert 0->'a', 1->'b', ...
+            char wyckoff_letter = 'a' + dataset.wyckoffs[i];  // convert 0->'a', 1->'b', ...
             std::cout << wyckoff_letter << " ";
         }
     }
     std::cout << "\n";
 }
 
-void printSymmetryOperations(const SpglibDataset& dataset){
-    for (int i = 0; i < dataset.n_operations; ++i)
-    {
-        std::cout << "Operation " << i+1 << ":\n";
+void printSymmetryOperations(const SpglibDataset& dataset) {
+    for (int i = 0; i < dataset.n_operations; ++i) {
+        std::cout << "Operation " << i + 1 << ":\n";
         std::cout << "  Rotation matrix:\n";
         for (int j = 0; j < 3; ++j)
-            std::cout << "   "
-                    << std::setw(2) << dataset.rotations[i][j][0] << " "
-                    << std::setw(2) << dataset.rotations[i][j][1] << " "
-                    << std::setw(2) << dataset.rotations[i][j][2] << "\n";
-        std::cout << "  Translation vector: "
-                << dataset.translations[i][0] << " "
-                << dataset.translations[i][1] << " "
-                << dataset.translations[i][2] << "\n";
+            std::cout << "   " << std::setw(2) << dataset.rotations[i][j][0] << " " << std::setw(2)
+                      << dataset.rotations[i][j][1] << " " << std::setw(2) << dataset.rotations[i][j][2] << "\n";
+        std::cout << "  Translation vector: " << dataset.translations[i][0] << " " << dataset.translations[i][1] << " "
+                  << dataset.translations[i][2] << "\n";
     }
-
 }
-

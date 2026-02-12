@@ -6,4 +6,4 @@
 bool readInput(int argc, char* argv[], std::string& inputFile, std::string& outputFile);
 void printHelp();
 
-#endif // POSCAR_C2D_H_INCLUDED
+#endif  // POSCAR_C2D_H_INCLUDED

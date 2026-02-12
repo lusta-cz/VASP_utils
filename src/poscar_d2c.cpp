@@ -1,29 +1,26 @@
-#include "poscar_file.h"
 #include "poscar_d2c.h"
 
 #include <iostream>
 #include <string>
 
+#include "poscar_file.h"
 
-
-bool readInput(int argc, char* argv[], std::string& inputFile, std::string& outputFile)
-{
+bool readInput(int argc, char* argv[], std::string& inputFile, std::string& outputFile) {
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
 
         if (arg == "--help") {
             printHelp();
             return false;
-        }
-        else if (arg == "--input") {
-            if (i + 1 >= argc) return false;
+        } else if (arg == "--input") {
+            if (i + 1 >= argc)
+                return false;
             inputFile = argv[++i];
-        }
-        else if (arg == "--output") {
-            if (i + 1 >= argc) return false;
+        } else if (arg == "--output") {
+            if (i + 1 >= argc)
+                return false;
             outputFile = argv[++i];
-        }
-                else {
+        } else {
             std::cerr << "Warning: unknown argument! Ignoring!\n";
             printHelp();
         }
@@ -31,24 +28,20 @@ bool readInput(int argc, char* argv[], std::string& inputFile, std::string& outp
     return true;
 }
 
-void printHelp()
-{
-    std::cerr <<
-        "Usage:\n"
-        "  poscar_d2c [options]\n\n"
-        "Options:\n"
-        "  --input   input POSCAR file name\n"
-        "  --output  output POSCAR file name\n"
-        "  --help    Show this help message\n\n"
-        "Example:\n"
-        "  poscar_d2c --input POSCARin --output POSCARout\n";
+void printHelp() {
+    std::cerr << "Usage:\n"
+                 "  poscar_d2c [options]\n\n"
+                 "Options:\n"
+                 "  --input   input POSCAR file name\n"
+                 "  --output  output POSCAR file name\n"
+                 "  --help    Show this help message\n\n"
+                 "Example:\n"
+                 "  poscar_d2c --input POSCARin --output POSCARout\n";
 }
 
-
-int main(int argc, char* argv[])
-{
-    std::string inputFile {"POSCAR"};
-    std::string outputFile {"POSCAR_cartesian"};
+int main(int argc, char* argv[]) {
+    std::string inputFile{"POSCAR"};
+    std::string outputFile{"POSCAR_cartesian"};
 
     if (!readInput(argc, argv, inputFile, outputFile)) {
         if (argc > 1 && std::string(argv[1]) != "--help") {
