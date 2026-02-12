@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.22)
 project(VaspUtils VERSION 0.1.2 LANGUAGES C CXX)
 
 include(FetchContent)
@@ -6,7 +6,7 @@ include(FetchContent)
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS ON) 
+set(CMAKE_CXX_EXTENSIONS ON)
 
 # Put all executables into bin/
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
@@ -42,14 +42,14 @@ add_library(vasp_core
 target_include_directories(vasp_core PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
 )
-    
+
 target_link_libraries(vasp_core
     PUBLIC
     ${LAPACKE_LIB}
     ${LAPACK_LIBRARIES}
     ${BLAS_LIBRARIES}
-)  
-    
+)
+
 
 # ===== spglib-based helpers =====
 add_library(vasp_spglib
@@ -58,9 +58,10 @@ add_library(vasp_spglib
 
 target_include_directories(vasp_spglib PUBLIC
     ${PROJECT_SOURCE_DIR}/include
+    ${spglib_SOURCE_DIR}/src
 )
 
-target_link_libraries(vasp_spglib PUBLIC symspg vasp_core)
+target_link_libraries(vasp_spglib PUBLIC Spglib::symspg vasp_core)
 
 # ===== Standard utilities (no spglib) =====
 add_executable(poscar_atom_displace src/poscar_atom_displacement.cpp)
@@ -75,4 +76,3 @@ target_link_libraries(poscar_c2d PRIVATE vasp_core)
 # ===== spglib utility =====
 add_executable(poscar_symmetry src/poscar_symmetry.cpp)
 target_link_libraries(poscar_symmetry PRIVATE vasp_spglib)
-
