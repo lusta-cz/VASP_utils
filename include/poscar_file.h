@@ -1,7 +1,6 @@
 #ifndef POSCAR_FILE_H_INCLUDED
 #define POSCAR_FILE_H_INCLUDED
 
-#include "matrix_operations.h"
 
 #include <string>
 #include <vector>

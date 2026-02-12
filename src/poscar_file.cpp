@@ -1,6 +1,11 @@
 #include "poscar_file.h"
 #include "random_utility.h"
 
+//Linear algebra
+
+#include <lapacke.h>
+#include <cblas.h>
+
 #include <string>
 #include <vector>
 #include <iostream>
@@ -327,50 +332,83 @@ void POSCAR::displaceAtoms(int n_atoms, AmpMode amp_mode, double amplitude)
 
 }*/
 
-
-
 void POSCAR::toDirect()
 {
-    // Fill lattice matrix
-    Matrix3x3 latticeMatrix;
+    double A[9];
+
+    // Copy lattice
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
-            latticeMatrix.m[i][j] = lattice[i][j];
+            A[i*3 + j] = lattice[i][j];
+
+    lapack_int ipiv[3];
+
+    // LU factorization
+    if (LAPACKE_dgetrf(LAPACK_ROW_MAJOR, 3, 3, A, 3, ipiv) != 0) {
+        std::cerr << "Error: LU decomposition failed.\n";
+        return;
+    }
 
     // Compute inverse
-    Matrix3x3 inv = latticeMatrix.inverse();
+    if (LAPACKE_dgetri(LAPACK_ROW_MAJOR, 3, A, 3, ipiv) != 0) {
+        std::cerr << "Error: Matrix inversion failed.\n";
+        return;
+    }
 
-    // Transform each atomic coordinate
+    // Transform coordinates
     for (auto& atom : coordinates) {
-        std::array<double,3> cart { atom.x, atom.y, atom.z };
-        std::array<double,3> direct;
-        inv.multiplyByVector(cart, direct);
 
-        atom.x = direct[0];
-        atom.y = direct[1];
-        atom.z = direct[2];
+        double x[3] = { atom.x, atom.y, atom.z };
+        double y[3];
+
+        cblas_dgemv(
+            CblasRowMajor,
+            CblasNoTrans,
+            3, 3,
+            1.0,
+            A, 3,
+            x, 1,
+            0.0,
+            y, 1
+        );
+
+        atom.x = y[0];
+        atom.y = y[1];
+        atom.z = y[2];
     }
 
     is_direct = true;
 }
 
+
 void POSCAR::toCartesian()
 {
-    // Fill lattice matrix
-    Matrix3x3 latticeMatrix;
+    double A[9];
+
+    // Flatten lattice (row-major)
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
-            latticeMatrix.m[i][j] = lattice[i][j];
+            A[i*3 + j] = lattice[i][j];
 
-    // Transform each atomic coordinate
     for (auto& atom : coordinates) {
-        std::array<double,3> direct { atom.x, atom.y, atom.z };
-        std::array<double,3> cart;
-        latticeMatrix.multiplyByVector(direct, cart);
 
-        atom.x = cart[0];
-        atom.y = cart[1];
-        atom.z = cart[2];
+        double x[3] = { atom.x, atom.y, atom.z };
+        double y[3];
+
+        cblas_dgemv(
+            CblasRowMajor,
+            CblasNoTrans,
+            3, 3,
+            1.0,
+            A, 3,
+            x, 1,
+            0.0,
+            y, 1
+        );
+
+        atom.x = y[0];
+        atom.y = y[1];
+        atom.z = y[2];
     }
 
     is_direct = false;
