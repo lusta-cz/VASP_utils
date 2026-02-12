@@ -55,16 +55,6 @@ https://github.com/spglib/spglib
 
 This project uses BLAS and LAPACKE for linear algebra operations, specifically:
 
-CBLAS – matrix–vector multiplication
-
-LAPACKE – LU factorization and matrix inversion
-
-Recommended backend:
-
-OpenBLAS
-
-These libraries are used for lattice transformations between Direct and Cartesian coordinates and ensure numerical robustness and future extensibility.
-
 ----Versions:----
 
 v_0.1.2 
