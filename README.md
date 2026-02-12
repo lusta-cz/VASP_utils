@@ -1,16 +1,21 @@
 Still under development. Currently, 4 utilities for POSCAR file manipulation.
 
 poscar_d2c
+
 poscar_c2d
+
 poscar_symmetry
+
 poscar_atom_displace
 
 For now, the code is as it is; nothing is guaranteed. 
 
 ----Plans:----
+
 Adding automatic testing after compilation.
 
 ----Installation:----
+
 Download from here. Using CMake to compile.
 Recommended commands:
 mkdir build
@@ -52,11 +57,14 @@ OpenBLAS
 These libraries are used for lattice transformations between Direct and Cartesian coordinates and ensure numerical robustness and future extensibility.
 
 ----Versions:----
+
 v_0.1.2 
+
 Added Linear Algebra libraries
 
 
 v_0.1
+
 Small custom linear algebra code. - removed in newer versions
 
 
