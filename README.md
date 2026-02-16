@@ -1,13 +1,13 @@
 Still under development. Currently, 4 utilities for POSCAR file manipulation.
 
 
-poscar_d2c
+poscar_d2c - fractional coordinates to cartesian
 
-poscar_c2d
+poscar_c2d - cartesian coordinates to fractional
 
-poscar_symmetry
+poscar_symmetry - find symmetry and primitive cell
 
-poscar_atom_displace
+poscar_atom_displace - randomly displace atoms
 
 
 For now, the code is as it is; nothing is guaranteed.
