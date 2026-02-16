@@ -21,7 +21,7 @@ Adding automatic testing after compilation.
 Download from here. Using CMake to compile.
 
 Recommended commands:
-
+```
 mkdir build
 
 cd build
@@ -29,7 +29,7 @@ cd build
 cmake ..
 
 make
-
+```
 ------------------------------------------------------
 
 The directory/bin is created with the executables.
