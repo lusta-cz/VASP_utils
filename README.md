@@ -1,11 +1,15 @@
-Still under development. Currently, 4 utilities for POSCAR file manipulation.
+Still under development. Currently, 6 utilities for POSCAR file manipulation.
 
 
 poscar_d2c - fractional coordinates to cartesian
 
 poscar_c2d - cartesian coordinates to fractional
 
-poscar_symmetry - find symmetry and primitive cell
+poscar_symmetry - find symmetry of a cell
+
+poscar_2primitive - create primitive cell
+
+poscar_2conventional - create conventional cell
 
 poscar_atom_displace - randomly displace atoms
 
@@ -93,6 +97,12 @@ pre-commit run --hook-stage manual clang-tidy
 ```
 
 ----Versions:----
+
+v_0.1.3
+
+Changed poscar_symmetry - removed option --primitive
+Added poscar_2primitive
+Added poscar_2conventional
 
 v_0.1.2
 
