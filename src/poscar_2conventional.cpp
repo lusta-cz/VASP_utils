@@ -1,4 +1,4 @@
-#include "poscar_symmetry.h"
+#include "poscar_2conventional.h"
 
 #include <spglib.h>
 
@@ -10,7 +10,7 @@
 #include "poscar_file.h"
 #include "symmetry.h"
 
-bool readInput(int argc, char* argv[], std::string& inputFile, double& symprec, bool& wyckoff, bool& symoperation) {
+bool readInput(int argc, char* argv[], std::string& inputFile, std::string& outputFile, double& symprec) {
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
 
@@ -21,10 +21,10 @@ bool readInput(int argc, char* argv[], std::string& inputFile, double& symprec, 
             if (i + 1 >= argc)
                 return false;
             inputFile = argv[++i];
-        } else if (arg == "--wyckoff") {
-            wyckoff = true;
-        } else if (arg == "--symoper") {
-            symoperation = true;
+        } else if (arg == "--output") {
+            if (i + 1 >= argc)
+                return false;
+            outputFile = argv[++i];
         } else if (arg == "--symprec") {
             if (i + 1 >= argc)
                 return false;
@@ -41,11 +41,15 @@ bool readInput(int argc, char* argv[], std::string& inputFile, double& symprec, 
     return true;
 }
 
-bool validateInput(const std::string& inputFile, double& symprec) {
+bool validateInput(const std::string& inputFile, const std::string& outputFile, double& symprec) {
     std::ifstream file(inputFile);
     if (!file) {
         std::cerr << "Error: cannot open file " << inputFile << "\n";
         return false;
+    }
+    std::ifstream file_2(outputFile);
+    if (file_2) {
+        std::cerr << "Warning: output file " << outputFile << " already exists!!! Will be overwritten!!!\n";
     }
     if (symprec < 0) {
         std::cerr << "Error: symprec cannot be negative!!!\n";
@@ -64,40 +68,40 @@ bool validateInput(const std::string& inputFile, double& symprec) {
 
 void printHelp() {
     std::cerr << "Usage:\n"
-                 "  poscar_symmetry [options]\n\n"
+                 "  poscar_2conventional [options]\n\n"
                  "Options:\n"
                  "  --input      input POSCAR file name (default: POSCAR)\n"
                  "  --symprec    symmetry tolerance (spglib symprec) (default: 1e-5)\n"
-                 "  --wyckoff    print the Wyckoff positions\n"
-                 "  --symoper    print the symmetry operations\n"
+                 "  --output     output POSCAR file name (used with --primitive) (default: POSCAR_primitive)\n"
                  "  --help       show this help message\n\n"
                  "Example:\n"
-                 "  poscar_symmetry --input POSCARin --symprec 1e-5 \n";
+                 "  poscar_2conventional --input POSCARin --symprec 1e-5 --outpur POSCARout\n";
 }
 
 int main(int argc, char* argv[]) {
     std::string inputFile{"POSCAR"};
+    std::string outputFile{"POSCAR_conventional"};
     double symprec{1e-5};
-    bool wyckoff{false};
-    bool symoperation{false};
 
-    if (!readInput(argc, argv, inputFile, symprec, wyckoff, symoperation)) {
+    if (!readInput(argc, argv, inputFile, outputFile, symprec)) {
         return 1;
     }
 
-    if (!validateInput(inputFile, symprec)) {
+    if (!validateInput(inputFile, outputFile, symprec)) {
         return 1;
     }
 
     POSCAR poscar;
     poscar.readPOSCAR(inputFile);
 
-    auto dataset = analyzeSymmetry(poscar, symprec);
+    auto poscar_stand = makeConventionalCell(poscar, symprec);
+    if (!poscar_stand) {
+        std::cerr << "Error: failed to create conventional cell POSCAR.\n";
+        return 1;
+    }
 
-    if (dataset) {
-        printSymmetryInfo(*dataset, wyckoff, symoperation);
-    } else {
-        std::cerr << "Error: failed to analyze symmetry.\n";
+    if (!poscar_stand->writePOSCAR(outputFile)) {
+        std::cerr << "Error: failed to write conventional cell POSCAR file to " << outputFile << "\n";
         return 1;
     }
 

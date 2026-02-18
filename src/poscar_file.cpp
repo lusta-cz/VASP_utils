@@ -44,6 +44,14 @@ bool POSCAR::readPOSCARHeader(const std::string& filename) {
         return false;
 
     scale = std::stod(line);
+    if (scale < 0) {
+        std::cerr << "Error: Scaling factor is negative!.\n";
+        return false;
+    }
+    if (scale == 0) {
+        std::cerr << "Error: Scaling factor is 0!.\n";
+        return false;
+    }
 
     // Reading Lines 3-5: lattice vectors
     for (int i = 0; i < 3; ++i) {
@@ -52,7 +60,13 @@ bool POSCAR::readPOSCARHeader(const std::string& filename) {
 
         std::istringstream iss(line);
         iss >> lattice[i][0] >> lattice[i][1] >> lattice[i][2];
+
+        // Apply scaling immediately, so it can be set to 1.0
+        lattice[i][0] *= scale;
+        lattice[i][1] *= scale;
+        lattice[i][2] *= scale;
     }
+    scale = 1.0;
 
     // Reading Line 6: element symbols
     if (!std::getline(file, line))

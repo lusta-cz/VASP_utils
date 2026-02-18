@@ -88,12 +88,32 @@ std::optional<POSCAR> makePrimitiveCell(const POSCAR& poscar, const double& symp
             types[idx++] = element_map[el];
     }
 
+    // Checking if empty spheres are present in input
+    for (const auto& el : poscar.elements) {
+        if (el == "X" || el == "E" || el == "V" || el == "Vac") {
+            std::cerr << "Warning: Empty sphere detected.\n"
+                      << "SPGLIB will treat them as real atoms and symmetry may change.\n";
+        }
+    }
     // 3) Call spglib primitive finder
     int num_prim = spg_find_primitive(lattice, positions, types, num_atoms, symprec);
 
     if (num_prim <= 0) {
         return std::nullopt;  // failed
     }
+
+    // Determine maximum type index
+    int max_type = 0;
+    for (int i = 0; i < num_prim; ++i)
+        if (types[i] > max_type)
+            max_type = types[i];
+
+    // Create lookup vector (type -> element)
+    std::vector<std::string> type_to_element(max_type + 1);
+
+    // Fill from original element_map
+    for (const auto& [el, t] : element_map)
+        type_to_element[t] = el;
 
     // 4) Build POSCAR from arrays now holding primitive cell
     POSCAR prim;
@@ -114,23 +134,119 @@ std::optional<POSCAR> makePrimitiveCell(const POSCAR& poscar, const double& symp
         prim.coordinates[i].z = positions[i][2];
     }
 
-    // Map types back to element symbols
-    std::map<int, std::string> reverse_map;
-    for (const auto& [el, t] : element_map)
-        reverse_map[t] = el;
+    prim.elements = poscar.elements;
+    prim.num_atoms.assign(prim.elements.size(), 0);
 
-    std::map<std::string, int> elem_counts;
-    for (int i = 0; i < num_prim; ++i)
-        elem_counts[reverse_map[types[i]]]++;
+    for (int i = 0; i < num_prim; ++i) {
+        std::string el = type_to_element[types[i]];
 
-    prim.elements.clear();
-    prim.num_atoms.clear();
-    for (auto& [el, cnt] : elem_counts) {
-        prim.elements.push_back(el);
-        prim.num_atoms.push_back(cnt);
+        // Find element index in original ordering
+        for (size_t j = 0; j < prim.elements.size(); ++j) {
+            if (prim.elements[j] == el) {
+                prim.num_atoms[j]++;
+                break;
+            }
+        }
+    }
+    return prim;
+}
+
+std::optional<POSCAR> makeConventionalCell(const POSCAR& poscar, const double& symprec) {
+    // 1) Copy and ensure fractional coordinates
+    POSCAR poscarDirect = poscar;
+    if (!poscarDirect.is_direct) {
+        poscarDirect.toDirect();
     }
 
-    return prim;
+    int num_atoms = static_cast<int>(poscarDirect.total_atoms);
+
+    // 2) Prepare C‑arrays for spg_find_primitive
+    double lattice[3][3];
+    for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
+            lattice[i][j] = poscarDirect.lattice[i][j];
+
+    double positions[num_atoms][3];
+    for (int i = 0; i < num_atoms; ++i) {
+        positions[i][0] = poscarDirect.coordinates[i].x;
+        positions[i][1] = poscarDirect.coordinates[i].y;
+        positions[i][2] = poscarDirect.coordinates[i].z;
+    }
+
+    int types[num_atoms];
+    int type_counter = 1;
+    std::map<std::string, int> element_map;
+    for (size_t i = 0, idx = 0; i < poscarDirect.elements.size(); ++i) {
+        const std::string& el = poscarDirect.elements[i];
+        int count = poscarDirect.num_atoms[i];
+        if (element_map.find(el) == element_map.end())
+            element_map[el] = type_counter++;
+        for (int j = 0; j < count; ++j)
+            types[idx++] = element_map[el];
+    }
+
+    // Checking if empty spheres are present in input
+    for (const auto& el : poscar.elements) {
+        if (el == "X" || el == "E" || el == "V" || el == "Vac") {
+            std::cerr << "Warning: Empty sphere detected.\n"
+                      << "SPGLIB will treat them as real atoms and symmetry may change.\n";
+        }
+    }
+
+    // 3) Call spglib standardization
+    int num_std = spg_standardize_cell(lattice, positions, types, num_atoms, 0, 1, symprec);
+
+    if (num_std <= 0) {
+        return std::nullopt;
+    }
+
+    // Determine maximum type index
+    int max_type = 0;
+    for (int i = 0; i < num_std; ++i)
+        if (types[i] > max_type)
+            max_type = types[i];
+
+    // Create lookup vector (type -> element)
+    std::vector<std::string> type_to_element(max_type + 1);
+
+    // Fill from original element_map
+    for (const auto& [el, t] : element_map)
+        type_to_element[t] = el;
+
+    // 4) Build POSCAR from arrays now holding primitive cell
+    POSCAR std_poscar;
+    std_poscar.comment = poscar.comment + " standardized cell";
+    std_poscar.is_direct = true;
+    std_poscar.total_atoms = num_std;
+
+    // Copy new lattice
+    for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
+            std_poscar.lattice[i][j] = lattice[i][j];
+
+    // Copy positions
+    std_poscar.coordinates.resize(num_std);
+    for (int i = 0; i < num_std; ++i) {
+        std_poscar.coordinates[i].x = positions[i][0];
+        std_poscar.coordinates[i].y = positions[i][1];
+        std_poscar.coordinates[i].z = positions[i][2];
+    }
+
+    std_poscar.elements = poscar.elements;
+    std_poscar.num_atoms.assign(std_poscar.elements.size(), 0);
+
+    for (int i = 0; i < num_std; ++i) {
+        std::string el = type_to_element[types[i]];
+
+        // Find element index in original ordering
+        for (size_t j = 0; j < std_poscar.elements.size(); ++j) {
+            if (std_poscar.elements[j] == el) {
+                std_poscar.num_atoms[j]++;
+                break;
+            }
+        }
+    }
+    return std_poscar;
 }
 
 void printSymmetryInfo(const SpglibDataset& dataset, const bool& wyckoff, const bool& symoperation) {
