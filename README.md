@@ -13,7 +13,7 @@ For now, the code is as it is; nothing is guaranteed.
 
 ----Plans:----
 
-Adding automatic testing after compilation.
+Deformation generator for elastic constants calculation.
 
 ----Installation:----
 
