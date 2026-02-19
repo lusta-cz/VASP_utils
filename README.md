@@ -11,6 +11,8 @@ poscar_2primitive - create primitive cell
 
 poscar_2conventional - create conventional cell
 
+poscar_2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
+
 poscar_atom_displace - randomly displace atoms
 
 
@@ -97,16 +99,20 @@ pre-commit run --hook-stage manual clang-tidy
 ```
 
 ----Versions:----
+v_0.1.4
+
+Changed - poscar_file.cpp -- now all reading of POSCAR file will rescale the data and set scale to 1.0
+Added - poscar_2ctrls
 
 v_0.1.3
 
-Changed poscar_symmetry - removed option --primitive
-Added poscar_2primitive
-Added poscar_2conventional
+Changed - poscar_symmetry - removed option --primitive
+Added - poscar_2primitive
+Added - poscar_2conventional
 
 v_0.1.2
 
-Added Linear Algebra libraries
+Added - Linear Algebra libraries
 
 
 v_0.1
