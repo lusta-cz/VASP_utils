@@ -117,4 +117,4 @@ v_0.1.2
 
 v_0.1
 
-- Small custom linear algebra code. - removed in newer versions
+- Small custom linear algebra code (removed in newer versions)
