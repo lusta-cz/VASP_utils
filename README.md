@@ -1,19 +1,12 @@
-Still under development. Currently, 6 utilities for POSCAR file manipulation.
+Still under development. Currently, these utilities for POSCAR file manipulation are implemented:
 
-
-poscar_d2c - fractional coordinates to cartesian
-
-poscar_c2d - cartesian coordinates to fractional
-
-poscar_symmetry - find symmetry of a cell
-
-poscar_2primitive - create primitive cell
-
-poscar_2conventional - create conventional cell
-
-poscar_2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
-
-poscar_atom_displace - randomly displace atoms
+- poscar_d2c - fractional coordinates to cartesian
+- poscar_c2d - cartesian coordinates to fractional
+- poscar_symmetry - find symmetry of a cell
+- poscar_2primitive - create primitive cell
+- poscar_2conventional - create conventional cell
+- poscar_2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
+- poscar_atom_displace - randomly displace atoms
 
 
 For now, the code is as it is; nothing is guaranteed.
