@@ -60,13 +60,7 @@ bool POSCAR::readPOSCARHeader(const std::string& filename) {
 
         std::istringstream iss(line);
         iss >> lattice[i][0] >> lattice[i][1] >> lattice[i][2];
-
-        // Apply scaling immediately, so it can be set to 1.0
-        lattice[i][0] *= scale;
-        lattice[i][1] *= scale;
-        lattice[i][2] *= scale;
     }
-    scale = 1.0;
 
     // Reading Line 6: element symbols
     if (!std::getline(file, line))
@@ -171,6 +165,27 @@ bool POSCAR::readPOSCARCoordinates(const std::string& filename) {
     return true;
 }
 
+void POSCAR::setScaleTo1() {
+    if (std::abs(scale - 1.0) < 1e-12)
+        return;
+
+    // Scale lattice
+    for (int i = 0; i < 3; ++i)
+        for (int j = 0; j < 3; ++j)
+            lattice[i][j] *= scale;
+
+    // Scale Cartesian positions only
+    if (!is_direct) {
+        for (auto& atom : coordinates) {
+            atom.x *= scale;
+            atom.y *= scale;
+            atom.z *= scale;
+        }
+    }
+
+    scale = 1.0;
+}
+
 bool POSCAR::readPOSCAR(const std::string& filename) {
     if (!readPOSCARHeader(filename)) {
         std::cerr << "Error: reading POSCAR header from " << filename << "\n";
@@ -192,6 +207,68 @@ bool POSCAR::readPOSCAR(const std::string& filename) {
         std::cerr << "Error reading POSCAR coordinates from " << filename << "\n";
         return false;
     }
+
+    // To avoid future issues
+    setScaleTo1();
+
+    return true;
+}
+
+bool POSCAR::writeCtrlsFile(const std::string& filenameOut) {
+    if (is_direct) {
+        std::cerr << "Error: Only POSCAR in cartesian coordinates can be writen to ctrls format!\n";
+        return false;
+    }
+
+    std::ifstream fileTest(filenameOut);
+    if (fileTest.good()) {
+        std::cerr << "Warning: file \"" << filenameOut << "\" already exists and will be overwritten.\n";
+    }
+
+    fileTest.close();
+
+    std::ofstream file(filenameOut);
+    if (!file) {
+        std::cerr << "Error: cannot create file " << filenameOut << "\n";
+        return false;
+    }
+
+    // Transform units from angstroms to Bohr
+    const double ang_to_bohr = 1.889726125;
+
+    // Writing lattice information
+
+    file << "STRUC    ALAT=" << scale * ang_to_bohr << "\n";
+
+    file << "         PLAT=";
+    for (int i = 0; i < 3; ++i) {
+        if (i > 0) {
+            file << "               ";
+        } else {
+            file << " ";  // Mezera pro první řádek hned za "PLAT="
+        }
+        file << std::fixed << std::setprecision(10) << lattice[i][0] << " " << lattice[i][1] << " " << lattice[i][2]
+             << " \n";
+    }
+
+    // Writing atomic position and element
+    file << "SITE \n";
+    int atom_idx = 0;
+
+    for (size_t i = 0; i < elements.size(); ++i) {
+        for (int j = 0; j < num_atoms[i]; ++j) {
+            if (atom_idx >= total_atoms)
+                break;
+
+            file << "      ATOM=" << std::left << std::setw(3) << elements[i] << " " << " POS=" << std::fixed
+                 << std::setprecision(10) << coordinates[atom_idx].x * ang_to_bohr << " "
+                 << coordinates[atom_idx].y * ang_to_bohr << " " << coordinates[atom_idx].z * ang_to_bohr << "\n";
+
+            atom_idx++;
+        }
+    }
+
+    file.close();
 
     return true;
 }

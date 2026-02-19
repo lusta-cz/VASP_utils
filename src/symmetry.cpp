@@ -215,7 +215,7 @@ std::optional<POSCAR> makeConventionalCell(const POSCAR& poscar, const double& s
 
     // 4) Build POSCAR from arrays now holding primitive cell
     POSCAR std_poscar;
-    std_poscar.comment = poscar.comment + " standardized cell";
+    std_poscar.comment = poscar.comment + " conventional cell";
     std_poscar.is_direct = true;
     std_poscar.total_atoms = num_std;
 

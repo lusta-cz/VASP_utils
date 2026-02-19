@@ -24,6 +24,7 @@ struct POSCAR {
     void displaceAtoms(int n_atoms, double amplitude);
     void toDirect();
     void toCartesian();
+    bool writeCtrlsFile(const std::string& filenameOut);
 
 private:
     bool readPOSCARHeader(const std::string& filename);
@@ -31,5 +32,6 @@ private:
     bool skipLines(std::ifstream& file, int n);
     bool readPOSCARCoordinates(const std::string& filename);
     void displaceAtom(size_t atom_index, double amplitude);
+    void setScaleTo1();
 };
 #endif  // POSCAR_FILE_H_INCLUDED

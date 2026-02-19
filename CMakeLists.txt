@@ -73,6 +73,9 @@ target_link_libraries(poscar_d2c PRIVATE vasp_core)
 add_executable(poscar_c2d src/poscar_c2d.cpp)
 target_link_libraries(poscar_c2d PRIVATE vasp_core)
 
+add_executable(poscar_2ctrls src/poscar_2ctrls.cpp)
+target_link_libraries(poscar_2ctrls PRIVATE vasp_core)
+
 # ===== spglib utility =====
 add_executable(poscar_symmetry src/poscar_symmetry.cpp)
 target_link_libraries(poscar_symmetry PRIVATE vasp_spglib)
