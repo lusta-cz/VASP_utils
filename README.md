@@ -4,7 +4,7 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 - poscar_c2d - cartesian coordinates to fractional
 - poscar_symmetry - find symmetry of a cell
 - poscar_2primitive - create primitive cell
-- poscar_2conventional - create conventional cell - NOT WORKING if the input is smaller
+- poscar_2conventional - create conventional cell
 - poscar_2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
 - poscar_atom_displace - randomly displace atoms
 
