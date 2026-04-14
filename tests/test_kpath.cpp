@@ -215,7 +215,7 @@ TEST(KPath, tI2_Points) {
     EXPECT_KPT(*kp, "X", 0.0, 0.0, 0.5);
     EXPECT_KPT(*kp, "Sigma", -H, H, H);
     EXPECT_KPT(*kp, "Sigma1", H, 1.0 - H, -H);
-    EXPECT_KPT(*kp, "R", -Z, Z, 0.5);
+    EXPECT_KPT(*kp, "Y", -Z, Z, 0.5);
     EXPECT_KPT(*kp, "Y1", 0.5, 0.5, -Z);
 }
 
