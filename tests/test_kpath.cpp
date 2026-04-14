@@ -76,7 +76,7 @@ TEST(KPath, cP_Points) {
     auto ds = makeDataset(221, "Pm-3m");
     auto kp = getBravaisKPath(conv, ds);
     ASSERT_TRUE(kp.has_value());
-    EXPECT_KPT(*kp, "G", 0.0, 0.0, 0.0);
+    EXPECT_KPT(*kp, "Gamma", 0.0, 0.0, 0.0);
     EXPECT_KPT(*kp, "M", 0.5, 0.5, 0.0);
     EXPECT_KPT(*kp, "R", 0.5, 0.5, 0.5);
     EXPECT_KPT(*kp, "X", 0.0, 0.5, 0.0);
@@ -107,7 +107,7 @@ TEST(KPath, cF_Points) {
     auto ds = makeDataset(225, "Fm-3m");
     auto kp = getBravaisKPath(conv, ds);
     ASSERT_TRUE(kp.has_value());
-    EXPECT_KPT(*kp, "G", 0.0, 0.0, 0.0);
+    EXPECT_KPT(*kp, "Gamma", 0.0, 0.0, 0.0);
     EXPECT_KPT(*kp, "K", 0.375, 0.375, 0.75);
     EXPECT_KPT(*kp, "L", 0.5, 0.5, 0.5);
     EXPECT_KPT(*kp, "U", 0.625, 0.25, 0.625);
@@ -125,7 +125,7 @@ TEST(KPath, cI_Points) {
     auto kp = getBravaisKPath(conv, ds);
     ASSERT_TRUE(kp.has_value());
     EXPECT_EQ(kp->bravais_label, "cI");
-    EXPECT_KPT(*kp, "G", 0.0, 0.0, 0.0);
+    EXPECT_KPT(*kp, "Gamma", 0.0, 0.0, 0.0);
     EXPECT_KPT(*kp, "H", 0.5, -0.5, 0.5);
     EXPECT_KPT(*kp, "N", 0.0, 0.0, 0.5);
     EXPECT_KPT(*kp, "P", 0.25, 0.25, 0.25);
@@ -141,7 +141,7 @@ TEST(KPath, tP_Points) {
     auto kp = getBravaisKPath(conv, ds);
     ASSERT_TRUE(kp.has_value());
     EXPECT_EQ(kp->bravais_label, "tP");
-    EXPECT_KPT(*kp, "G", 0.0, 0.0, 0.0);
+    EXPECT_KPT(*kp, "Gamma", 0.0, 0.0, 0.0);
     EXPECT_KPT(*kp, "A", 0.5, 0.5, 0.5);
     EXPECT_KPT(*kp, "M", 0.5, 0.5, 0.0);
     EXPECT_KPT(*kp, "R", 0.0, 0.5, 0.5);
@@ -170,7 +170,7 @@ TEST(KPath, tI1_ZPoint) {
     auto kp = getBravaisKPath(conv, ds);
     ASSERT_TRUE(kp.has_value());
     EXPECT_KPT(*kp, "Z", H, H, -H);
-    EXPECT_KPT(*kp, "Z0", -H, 1.0 - H, H);
+    EXPECT_KPT(*kp, "Z1", -H, 1.0 - H, H);
     EXPECT_KPT(*kp, "M", -0.5, 0.5, 0.5);
     EXPECT_KPT(*kp, "N", 0.0, 0.5, 0.0);
     EXPECT_KPT(*kp, "P", 0.25, 0.25, 0.25);
@@ -209,14 +209,14 @@ TEST(KPath, tI2_Points) {
     auto ds = makeDataset(139, "I4/mmm");
     auto kp = getBravaisKPath(conv, ds);
     ASSERT_TRUE(kp.has_value());
-    EXPECT_KPT(*kp, "M", 0.5, 0.5, -0.5);
+    EXPECT_KPT(*kp, "Z", 0.5, 0.5, -0.5);
     EXPECT_KPT(*kp, "N", 0.0, 0.5, 0.0);
     EXPECT_KPT(*kp, "P", 0.25, 0.25, 0.25);
     EXPECT_KPT(*kp, "X", 0.0, 0.0, 0.5);
-    EXPECT_KPT(*kp, "S0", -H, H, H);
-    EXPECT_KPT(*kp, "S", H, 1.0 - H, -H);
+    EXPECT_KPT(*kp, "Sigma", -H, H, H);
+    EXPECT_KPT(*kp, "Sigma1", H, 1.0 - H, -H);
     EXPECT_KPT(*kp, "R", -Z, Z, 0.5);
-    EXPECT_KPT(*kp, "Gp", 0.5, 0.5, -Z);
+    EXPECT_KPT(*kp, "Y1", 0.5, 0.5, -Z);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -229,7 +229,7 @@ TEST(KPath, oP_Points) {
     auto kp = getBravaisKPath(conv, ds);
     ASSERT_TRUE(kp.has_value());
     EXPECT_EQ(kp->bravais_label, "oP");
-    EXPECT_KPT(*kp, "G", 0.0, 0.0, 0.0);
+    EXPECT_KPT(*kp, "Gamma", 0.0, 0.0, 0.0);
     EXPECT_KPT(*kp, "R", 0.5, 0.5, 0.5);
     EXPECT_KPT(*kp, "S", 0.5, 0.5, 0.0);
     EXPECT_KPT(*kp, "T", 0.0, 0.5, 0.5);
@@ -252,7 +252,7 @@ TEST(KPath, hP_Points) {
     auto kp = getBravaisKPath(conv, ds);
     ASSERT_TRUE(kp.has_value());
     EXPECT_EQ(kp->bravais_label, "hP");
-    EXPECT_KPT(*kp, "G", 0.0, 0.0, 0.0);
+    EXPECT_KPT(*kp, "Gamma", 0.0, 0.0, 0.0);
     EXPECT_KPT(*kp, "A", 0.0, 0.0, 0.5);
     EXPECT_KPT(*kp, "H", 1.0 / 3.0, 1.0 / 3.0, 0.5);
     EXPECT_KPT(*kp, "K", 1.0 / 3.0, 1.0 / 3.0, 0.0);
@@ -287,7 +287,7 @@ TEST(KPath, hR1_ParametricPoints) {
     ASSERT_TRUE(kp.has_value());
 
     // Fixed points
-    EXPECT_KPT(*kp, "G", 0.0, 0.0, 0.0);
+    EXPECT_KPT(*kp, "Gamma", 0.0, 0.0, 0.0);
     EXPECT_KPT(*kp, "Z", 0.5, 0.5, 0.5);
     EXPECT_KPT(*kp, "L", 0.5, 0.0, 0.0);
     EXPECT_KPT(*kp, "L1", 0.0, 0.0, -0.5);
@@ -327,7 +327,7 @@ TEST(KPath, hR2_ParametricPoints) {
     ASSERT_TRUE(kp.has_value());
 
     // Fixed points
-    EXPECT_KPT(*kp, "G", 0.0, 0.0, 0.0);
+    EXPECT_KPT(*kp, "Gamma", 0.0, 0.0, 0.0);
     EXPECT_KPT(*kp, "Z", 0.5, -0.5, 0.5);
     EXPECT_KPT(*kp, "L", 0.5, 0.0, 0.0);
     EXPECT_KPT(*kp, "F", 0.5, -0.5, 0.0);
