@@ -222,7 +222,7 @@ static KPath kpath_oF(const POSCAR& conv) {
                     {"Z", 0.5, 0.5, 0.0}};
         p.segments = {{"Gamma", "Y"},  {"Y", "T"},  {"T", "Z"}, {"Z", "Gamma"}, {"Gamma", "X"}, {"X", "A1"},
                       {"A1", "Y"}, {"T", "X1"}, {"X", "A"}, {"A", "Z"}, {"L", "Gamma"}};
-    } else (1.0 / a2 < 1.0 / b2 + 1.0 / c2) {
+    } else if (1.0 / a2 < 1.0 / b2 + 1.0 / c2) {
         // oF2
         const double phi = (1.0 + c2 / b2 - c2 / a2) / 4.0;
         const double eta = (1.0 + a2 / b2 - a2 / c2) / 4.0;
