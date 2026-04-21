@@ -181,7 +181,6 @@ TEST(PoscarIO, ReadFailsWithoutMutatingStateOnMalformedInput) {
     EXPECT_EQ(poscar.is_direct, original_is_direct);
 }
 
-
 TEST(PoscarIO, SelectiveDynamicsRoundTrip) {
     const std::string tmpFile = std::string(TEST_DATA_DIR) + "/test_selective_roundtrip_tmp.poscar";
     {

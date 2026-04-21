@@ -118,9 +118,15 @@ TEST_F(DisplacementTest, WrapFractionalCoordinates) {
     POSCAR p;
     p.comment = "wrap";
     p.scale = 1.0;
-    p.lattice[0][0] = 1.0; p.lattice[0][1] = 0.0; p.lattice[0][2] = 0.0;
-    p.lattice[1][0] = 0.0; p.lattice[1][1] = 1.0; p.lattice[1][2] = 0.0;
-    p.lattice[2][0] = 0.0; p.lattice[2][1] = 0.0; p.lattice[2][2] = 1.0;
+    p.lattice[0][0] = 1.0;
+    p.lattice[0][1] = 0.0;
+    p.lattice[0][2] = 0.0;
+    p.lattice[1][0] = 0.0;
+    p.lattice[1][1] = 1.0;
+    p.lattice[1][2] = 0.0;
+    p.lattice[2][0] = 0.0;
+    p.lattice[2][1] = 0.0;
+    p.lattice[2][2] = 1.0;
     p.elements = {"H"};
     p.num_atoms = {1};
     p.total_atoms = 1;

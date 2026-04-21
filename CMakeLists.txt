@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(VaspUtils VERSION 0.1.9 LANGUAGES C CXX)
+project(VaspUtils VERSION 0.1.10 LANGUAGES C CXX)
 
 include(FetchContent)
 
@@ -104,6 +104,11 @@ target_link_libraries(poscar_2primitive PRIVATE vasp_spglib CLI11::CLI11)
 
 add_executable(poscar_2conventional src/poscar_2conventional.cpp)
 target_link_libraries(poscar_2conventional PRIVATE vasp_spglib CLI11::CLI11)
+
+# ===== Postprocessing utilities (no spglib) =====
+add_executable(vasp_eigenval2bands src/vasp_eigenval2bands.cpp)
+target_link_libraries(vasp_eigenval2bands PRIVATE CLI11::CLI11)
+
 
 # ===== Tests (GoogleTest) =====
 FetchContent_Declare(

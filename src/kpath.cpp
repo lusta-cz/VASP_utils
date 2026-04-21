@@ -129,10 +129,10 @@ static KPath kpath_cP() {
 static KPath kpath_cF() {
     KPath p;
     p.bravais_label = "cF";
-    p.points = {{"Gamma", 0, 0, 0}, {"K", 0.375, 0.375, 0.75}, {"L", 0.5, 0.5, 0.5}, {"U", 0.625, 0.25, 0.625},
-                {"W", 0.5, 0.25, 0.75}, {"X", 0.5, 0, 0.5}};
+    p.points = {{"Gamma", 0, 0, 0},        {"K", 0.375, 0.375, 0.75}, {"L", 0.5, 0.5, 0.5},
+                {"U", 0.625, 0.25, 0.625}, {"W", 0.5, 0.25, 0.75},    {"X", 0.5, 0, 0.5}};
     p.segments = {{"Gamma", "X"}, {"X", "W"}, {"W", "K"}, {"K", "Gamma"}, {"Gamma", "L"}, {"L", "U"},
-                  {"U", "W"}, {"W", "L"}, {"L", "K"}, {"K", "U"}, {"U", "X"}};
+                  {"U", "W"},     {"W", "L"}, {"L", "K"}, {"K", "U"},     {"U", "X"}};
     return p;
 }
 
@@ -150,7 +150,7 @@ static KPath kpath_tP() {
     p.points = {{"Gamma", 0, 0, 0}, {"A", 0.5, 0.5, 0.5}, {"M", 0.5, 0.5, 0},
                 {"R", 0, 0.5, 0.5}, {"X", 0, 0.5, 0},     {"Z", 0, 0, 0.5}};
     p.segments = {{"Gamma", "X"}, {"X", "M"}, {"M", "Gamma"}, {"Gamma", "Z"}, {"Z", "R"},
-                  {"R", "A"}, {"A", "Z"}, {"X", "R"}, {"M", "A"}};
+                  {"R", "A"},     {"A", "Z"}, {"X", "R"},     {"M", "A"}};
     return p;
 }
 
@@ -171,18 +171,19 @@ static KPath kpath_tI(const POSCAR& conv) {
         // tI1
         const double H = (1.0 + c2 / a2) / 4.0;
         p.bravais_label = "tI1";
-        p.points = {{"Gamma", 0, 0, 0},   {"M", -0.5, 0.5, 0.5}, {"N", 0, 0.5, 0},      {"P", 0.25, 0.25, 0.25},
-                    {"X", 0, 0, 0.5}, {"Z", H, H, -H},       {"Z1", -H, 1.0 - H, H}};
-        p.segments = {{"Gamma", "X"}, {"X", "M"}, {"M", "Gamma"}, {"Gamma", "Z"}, {"Z1", "M"}, {"X", "P"}, {"P", "N"}, {"N", "Gamma"}};
+        p.points = {{"Gamma", 0, 0, 0}, {"M", -0.5, 0.5, 0.5}, {"N", 0, 0.5, 0},      {"P", 0.25, 0.25, 0.25},
+                    {"X", 0, 0, 0.5},   {"Z", H, H, -H},       {"Z1", -H, 1.0 - H, H}};
+        p.segments = {{"Gamma", "X"}, {"X", "M"}, {"M", "Gamma"}, {"Gamma", "Z"},
+                      {"Z1", "M"},    {"X", "P"}, {"P", "N"},     {"N", "Gamma"}};
     } else {
         // tI2
         const double H = (1.0 + a2 / c2) / 4.0;
         const double Z = a2 / (2.0 * c2);
         p.bravais_label = "tI2";
-        p.points = {{"Gamma", 0, 0, 0},          {"Z", 0.5, 0.5, -0.5}, {"N", 0, 0.5, 0},
-                    {"P", 0.25, 0.25, 0.25}, {"X", 0, 0, 0.5},      {"Sigma", -H, H, H},
-                    {"Sigma1", H, 1.0 - H, -H},   {"Y", -Z, Z, 0.5},     {"Y1", 0.5, 0.5, -Z}};
-        p.segments = {{"Gamma", "X"}, {"X", "P"},  {"P", "N"}, {"N", "Gamma"}, {"Gamma", "Z"},
+        p.points = {{"Gamma", 0, 0, 0},         {"Z", 0.5, 0.5, -0.5}, {"N", 0, 0.5, 0},
+                    {"P", 0.25, 0.25, 0.25},    {"X", 0, 0, 0.5},      {"Sigma", -H, H, H},
+                    {"Sigma1", H, 1.0 - H, -H}, {"Y", -Z, Z, 0.5},     {"Y1", 0.5, 0.5, -Z}};
+        p.segments = {{"Gamma", "X"}, {"X", "P"},          {"P", "N"}, {"N", "Gamma"}, {"Gamma", "Z"},
                       {"Z", "Sigma"}, {"Sigma1", "Gamma"}, {"X", "Y"}, {"Y1", "Z"}};
     }
     return p;
@@ -191,10 +192,10 @@ static KPath kpath_tI(const POSCAR& conv) {
 static KPath kpath_oP() {
     KPath p;
     p.bravais_label = "oP";
-    p.points = {{"Gamma", 0, 0, 0},     {"R", 0.5, 0.5, 0.5}, {"S", 0.5, 0.5, 0}, {"T", 0, 0.5, 0.5},
+    p.points = {{"Gamma", 0, 0, 0}, {"R", 0.5, 0.5, 0.5}, {"S", 0.5, 0.5, 0}, {"T", 0, 0.5, 0.5},
                 {"U", 0.5, 0, 0.5}, {"X", 0.5, 0, 0},     {"Y", 0, 0.5, 0},   {"Z", 0, 0, 0.5}};
     p.segments = {{"Gamma", "X"}, {"X", "S"}, {"S", "Y"}, {"Y", "Gamma"}, {"Gamma", "Z"}, {"Z", "U"},
-                  {"U", "R"}, {"R", "T"}, {"T", "Z"}, {"Y", "T"}, {"U", "X"}, {"S", "R"}};
+                  {"U", "R"},     {"R", "T"}, {"T", "Z"}, {"Y", "T"},     {"U", "X"},     {"S", "R"}};
     return p;
 }
 
@@ -220,8 +221,8 @@ static KPath kpath_oF(const POSCAR& conv) {
                     {"X1", 1.0, 1.0 - eta, 1.0 - eta},
                     {"Y", 0.5, 0.0, 0.5},
                     {"Z", 0.5, 0.5, 0.0}};
-        p.segments = {{"Gamma", "Y"},  {"Y", "T"},  {"T", "Z"}, {"Z", "Gamma"}, {"Gamma", "X"}, {"X", "A1"},
-                      {"A1", "Y"}, {"T", "X1"}, {"X", "A"}, {"A", "Z"}, {"L", "Gamma"}};
+        p.segments = {{"Gamma", "Y"}, {"Y", "T"},  {"T", "Z"}, {"Z", "Gamma"}, {"Gamma", "X"}, {"X", "A1"},
+                      {"A1", "Y"},    {"T", "X1"}, {"X", "A"}, {"A", "Z"},     {"L", "Gamma"}};
     } else if (1.0 / a2 < 1.0 / b2 + 1.0 / c2) {
         // oF2
         const double phi = (1.0 + c2 / b2 - c2 / a2) / 4.0;
@@ -239,8 +240,8 @@ static KPath kpath_oF(const POSCAR& conv) {
                     {"X", 0.0, 0.5, 0.5},
                     {"Y", 0.5, 0.0, 0.5},
                     {"Z", 0.5, 0.5, 0.0}};
-        p.segments = {{"Gamma", "Y"},  {"Y", "C"}, {"C", "D"},  {"D", "X"},  {"X", "Gamma"}, {"Gamma", "Z"}, {"Z", "D1"},
-                      {"D1", "H"}, {"H", "C"}, {"C1", "Z"}, {"X", "H1"}, {"H", "Y"}, {"L", "Gamma"}};
+        p.segments = {{"Gamma", "Y"}, {"Y", "C"}, {"C", "D"},  {"D", "X"},  {"X", "Gamma"}, {"Gamma", "Z"}, {"Z", "D1"},
+                      {"D1", "H"},    {"H", "C"}, {"C1", "Z"}, {"X", "H1"}, {"H", "Y"},     {"L", "Gamma"}};
     } else {
         // oF3 (degenerate: 1/a² == 1/b² + 1/c²)
         const double zeta = (1.0 + a2 / b2 - a2 / c2) / 4.0;
@@ -255,8 +256,8 @@ static KPath kpath_oF(const POSCAR& conv) {
                     {"X1", 1.0, 1.0 - eta, 1.0 - eta},
                     {"Y", 0.5, 0.0, 0.5},
                     {"Z", 0.5, 0.5, 0.0}};
-        p.segments = {{"Gamma", "Y"},  {"Y", "T"},  {"T", "Z"}, {"Z", "Gamma"}, {"Gamma", "X"},
-                      {"X", "A1"}, {"A1", "Y"}, {"X", "A"}, {"A", "Z"}, {"L", "Gamma"}};
+        p.segments = {{"Gamma", "Y"}, {"Y", "T"},  {"T", "Z"}, {"Z", "Gamma"}, {"Gamma", "X"},
+                      {"X", "A1"},    {"A1", "Y"}, {"X", "A"}, {"A", "Z"},     {"L", "Gamma"}};
     }
     return p;
 }
@@ -274,20 +275,14 @@ static KPath kpath_oI(const POSCAR& conv) {
 
     KPath p;
     p.bravais_label = "oI";
-    p.points = {{"Gamma", 0, 0, 0},
-                {"L", -mu, mu, 0.5 - delta},
-                {"L1", mu, -mu, 0.5 + delta},
-                {"L2", 0.5 - delta, 0.5 + delta, -mu},
-                {"R", 0.0, 0.5, 0.0},
-                {"S", 0.5, 0.0, 0.0},
-                {"T", 0.0, 0.0, 0.5},
-                {"W", 0.25, 0.25, 0.25},
-                {"X", -zeta, zeta, zeta},
-                {"X1", zeta, 1.0 - zeta, -zeta},
-                {"Y", eta, -eta, eta},
-                {"Y1", 1.0 - eta, eta, -eta},
+    p.points = {{"Gamma", 0, 0, 0},           {"L", -mu, mu, 0.5 - delta},
+                {"L1", mu, -mu, 0.5 + delta}, {"L2", 0.5 - delta, 0.5 + delta, -mu},
+                {"R", 0.0, 0.5, 0.0},         {"S", 0.5, 0.0, 0.0},
+                {"T", 0.0, 0.0, 0.5},         {"W", 0.25, 0.25, 0.25},
+                {"X", -zeta, zeta, zeta},     {"X1", zeta, 1.0 - zeta, -zeta},
+                {"Y", eta, -eta, eta},        {"Y1", 1.0 - eta, eta, -eta},
                 {"Z", 0.5, 0.5, -0.5}};
-    p.segments = {{"Gamma", "X"}, {"X", "L"}, {"L", "T"}, {"T", "W"}, {"W", "R"},  {"R", "X1"}, {"X1", "Z"},
+    p.segments = {{"Gamma", "X"}, {"X", "L"},     {"L", "T"}, {"T", "W"}, {"W", "R"},  {"R", "X1"}, {"X1", "Z"},
                   {"Z", "Gamma"}, {"Gamma", "Y"}, {"Y", "S"}, {"S", "W"}, {"L1", "Y"}, {"Y1", "Z"}};
     return p;
 }
@@ -300,7 +295,7 @@ static KPath kpath_oC(const POSCAR& conv) {
 
     KPath p;
     p.bravais_label = "oC";
-    p.points = {{"Gamma", 0, 0, 0},         {"A", zeta, zeta, 0.5},         {"A1", -zeta, 1.0 - zeta, 0.5},
+    p.points = {{"Gamma", 0, 0, 0},     {"A", zeta, zeta, 0.5},         {"A1", -zeta, 1.0 - zeta, 0.5},
                 {"R", 0.0, 0.5, 0.5},   {"S", 0.0, 0.5, 0.0},           {"T", -0.5, 0.5, 0.5},
                 {"X", zeta, zeta, 0.0}, {"X1", -zeta, 1.0 - zeta, 0.0}, {"Y", -0.5, 0.5, 0.0},
                 {"Z", 0.0, 0.0, 0.5}};
@@ -312,10 +307,10 @@ static KPath kpath_oC(const POSCAR& conv) {
 static KPath kpath_hP() {
     KPath p;
     p.bravais_label = "hP";
-    p.points = {{"Gamma", 0, 0, 0},     {"A", 0, 0, 0.5}, {"H", 1.0 / 3.0, 1.0 / 3.0, 0.5}, {"K", 1.0 / 3.0, 1.0 / 3.0, 0},
+    p.points = {{"Gamma", 0, 0, 0}, {"A", 0, 0, 0.5}, {"H", 1.0 / 3.0, 1.0 / 3.0, 0.5}, {"K", 1.0 / 3.0, 1.0 / 3.0, 0},
                 {"L", 0.5, 0, 0.5}, {"M", 0.5, 0, 0}};
     p.segments = {{"Gamma", "M"}, {"M", "K"}, {"K", "Gamma"}, {"Gamma", "A"}, {"A", "L"},
-                  {"L", "H"}, {"H", "A"}, {"L", "M"}, {"K", "H"}};
+                  {"L", "H"},     {"H", "A"}, {"L", "M"},     {"K", "H"}};
     return p;
 }
 
@@ -351,7 +346,7 @@ static KPath kpath_hR(const POSCAR& conv) {
                     {"X", nu, 0, -nu},
                     {"Z", 0.5, 0.5, 0.5}};
         p.segments = {{"Gamma", "L"}, {"L", "B1"}, {"B", "Z"},  {"Z", "Gamma"}, {"Gamma", "X"},
-                      {"Q", "F"}, {"F", "P1"}, {"P1", "Z"}, {"L", "P"}};
+                      {"Q", "F"},     {"F", "P1"}, {"P1", "Z"}, {"L", "P"}};
     } else {
         // hR2
         const double eta = (1.0 + cos_alpha) / (2.0 * (1.0 - cos_alpha));
@@ -365,8 +360,8 @@ static KPath kpath_hR(const POSCAR& conv) {
                     {"Q", eta, eta, eta},
                     {"Q1", 1.0 - eta, -eta, -eta},
                     {"Z", 0.5, -0.5, 0.5}};
-        p.segments = {{"Gamma", "P"},  {"P", "Z"},   {"Z", "Q"},  {"Q", "Gamma"}, {"Gamma", "F"},
-                      {"F", "P1"}, {"P1", "Q1"}, {"Q1", "L"}, {"L", "Z"}};
+        p.segments = {{"Gamma", "P"}, {"P", "Z"},   {"Z", "Q"},  {"Q", "Gamma"}, {"Gamma", "F"},
+                      {"F", "P1"},    {"P1", "Q1"}, {"Q1", "L"}, {"L", "Z"}};
     }
     return p;
 }
@@ -390,12 +385,12 @@ static KPath kpath_mP(const POSCAR& conv) {
     KPath p;
     p.bravais_label = "mP";
     p.points = {
-        {"Gamma", 0, 0, 0},         {"A", 0.5, 0.5, 0.0},      {"C", 0.0, 0.5, 0.5},       {"D", 0.5, 0.0, 0.5},
+        {"Gamma", 0, 0, 0},     {"A", 0.5, 0.5, 0.0},      {"C", 0.0, 0.5, 0.5},       {"D", 0.5, 0.0, 0.5},
         {"D1", 0.5, 0.0, -0.5}, {"E", 0.5, 0.5, 0.5},      {"H", 0.0, eta, 1.0 - nu},  {"H1", 0.0, 1.0 - eta, nu},
         {"H2", 0.0, eta, -nu},  {"M", 0.5, eta, 1.0 - nu}, {"M1", 0.5, 1.0 - eta, nu}, {"M2", 0.5, eta, -nu},
         {"X", 0.0, 0.5, 0.0},   {"Y", 0.0, 0.0, 0.5},      {"Y1", 0.0, 0.0, -0.5},     {"Z", 0.5, 0.0, 0.0}};
     p.segments = {{"Gamma", "Y"}, {"Y", "H"},  {"H", "C"}, {"C", "E"}, {"E", "M1"}, {"M1", "A"},
-                  {"A", "X"}, {"X", "H1"}, {"M", "D"}, {"D", "Z"}, {"Y", "D"}};
+                  {"A", "X"},     {"X", "H1"}, {"M", "D"}, {"D", "Z"}, {"Y", "D"}};
     return p;
 }
 
@@ -459,8 +454,8 @@ static KPath kpath_mC(const POSCAR& conv) {
                     {"Y", 0.5, 0.5, 0.0},
                     {"Y1", -0.5, -0.5, 0.0},
                     {"Z", 0.0, 0.0, 0.5}};
-        p.segments = {{"Gamma", "Y"},  {"Y", "F"},  {"F", "L"}, {"L", "I"}, {"I1", "Z"},
-                      {"Z", "F1"}, {"Y", "X1"}, {"X", "Gamma"}, {"Gamma", "N"}, {"M", "G"}};
+        p.segments = {{"Gamma", "Y"}, {"Y", "F"},  {"F", "L"},     {"L", "I"},     {"I1", "Z"},
+                      {"Z", "F1"},    {"Y", "X1"}, {"X", "Gamma"}, {"Gamma", "N"}, {"M", "G"}};
     } else if (kgamma_deg < 90.0) {
         const double test = b * std::cos(beta) / c + b * b * std::sin(beta) * std::sin(beta) / (a * a);
         if (test < 1.0) {
@@ -489,8 +484,8 @@ static KPath kpath_mC(const POSCAR& conv) {
                         {"Y2", -mu, -mu, -delta},
                         {"Y3", mu, mu - 1.0, delta},
                         {"Z", 0.0, 0.0, 0.5}};
-            p.segments = {{"Gamma", "Y"},   {"Y", "F"},  {"F", "H"}, {"H", "Z"}, {"Z", "I"}, {"I", "F1"},
-                          {"H1", "Y1"}, {"Y1", "X"}, {"X", "Gamma"}, {"Gamma", "N"}, {"M", "Gamma"}};
+            p.segments = {{"Gamma", "Y"}, {"Y", "F"},  {"F", "H"},     {"H", "Z"},     {"Z", "I"},    {"I", "F1"},
+                          {"H1", "Y1"},   {"Y1", "X"}, {"X", "Gamma"}, {"Gamma", "N"}, {"M", "Gamma"}};
         } else if (test > 1.0) {
             // mC5
             const double zeta =
@@ -522,8 +517,8 @@ static KPath kpath_mC(const POSCAR& conv) {
                         {"Y2", -mu, -mu, -delta},
                         {"Y3", mu, mu - 1.0, delta},
                         {"Z", 0.0, 0.0, 0.5}};
-            p.segments = {{"Gamma", "Y"},  {"Y", "F"},   {"F", "L"},  {"L", "I"}, {"I1", "Z"}, {"Z", "H"},
-                          {"H", "F1"}, {"H1", "Y1"}, {"Y1", "X"}, {"X", "Gamma"}, {"Gamma", "N"},  {"M", "Gamma"}};
+            p.segments = {{"Gamma", "Y"}, {"Y", "F"},   {"F", "L"},  {"L", "I"},     {"I1", "Z"},    {"Z", "H"},
+                          {"H", "F1"},    {"H1", "Y1"}, {"Y1", "X"}, {"X", "Gamma"}, {"Gamma", "N"}, {"M", "Gamma"}};
         } else {
             // mC4 (degenerate)
             const double mu = (1.0 + b * b / (a * a)) / 4.0;
@@ -550,8 +545,8 @@ static KPath kpath_mC(const POSCAR& conv) {
                         {"Y2", -mu, -mu, -delta},
                         {"Y3", mu, mu - 1.0, delta},
                         {"Z", 0.0, 0.0, 0.5}};
-            p.segments = {{"Gamma", "Y"},   {"Y", "F"},  {"F", "H"}, {"H", "Z"}, {"Z", "I"},
-                          {"H1", "Y1"}, {"Y1", "X"}, {"X", "Gamma"}, {"Gamma", "N"}, {"M", "Gamma"}};
+            p.segments = {{"Gamma", "Y"}, {"Y", "F"},  {"F", "H"},     {"H", "Z"},     {"Z", "I"},
+                          {"H1", "Y1"},   {"Y1", "X"}, {"X", "Gamma"}, {"Gamma", "N"}, {"M", "Gamma"}};
         }
     } else {
         // mC2 (kgamma == 90°)
@@ -577,7 +572,8 @@ static KPath kpath_mC(const POSCAR& conv) {
                     {"Y", 0.5, 0.5, 0.0},
                     {"Y1", -0.5, -0.5, 0.0},
                     {"Z", 0.0, 0.0, 0.5}};
-        p.segments = {{"Gamma", "Y"}, {"Y", "F"}, {"F", "L"}, {"L", "I"}, {"I1", "Z"}, {"Z", "F1"}, {"N", "Gamma"}, {"Gamma", "M"}};
+        p.segments = {{"Gamma", "Y"}, {"Y", "F"},  {"F", "L"},     {"L", "I"},
+                      {"I1", "Z"},    {"Z", "F1"}, {"N", "Gamma"}, {"Gamma", "M"}};
     }
     return p;
 }
@@ -612,14 +608,16 @@ static KPath kpath_aP(const POSCAR& prim) {
     KPath p;
     if (is_tri1a) {
         p.bravais_label = "aP1";
-        p.points = {{"Gamma", 0, 0, 0},       {"L", 0.5, 0.5, 0.0}, {"M", 0.0, 0.5, 0.5}, {"N", 0.5, 0.0, 0.5},
+        p.points = {{"Gamma", 0, 0, 0},   {"L", 0.5, 0.5, 0.0}, {"M", 0.0, 0.5, 0.5}, {"N", 0.5, 0.0, 0.5},
                     {"R", 0.5, 0.5, 0.5}, {"X", 0.5, 0.0, 0.0}, {"Y", 0.0, 0.5, 0.0}, {"Z", 0.0, 0.0, 0.5}};
-        p.segments = {{"X", "Gamma"}, {"Gamma", "Y"}, {"L", "Gamma"}, {"Gamma", "Z"}, {"N", "Gamma"}, {"Gamma", "M"}, {"R", "Gamma"}};
+        p.segments = {{"X", "Gamma"}, {"Gamma", "Y"}, {"L", "Gamma"}, {"Gamma", "Z"},
+                      {"N", "Gamma"}, {"Gamma", "M"}, {"R", "Gamma"}};
     } else {
         p.bravais_label = "aP2";
         p.points = {{"G", 0, 0, 0},        {"L", 0.5, -0.5, 0.0}, {"M", 0.0, 0.0, 0.5}, {"N", -0.5, -0.5, 0.5},
                     {"R", 0.0, -0.5, 0.5}, {"X", 0.0, -0.5, 0.0}, {"Y", 0.5, 0.0, 0.0}, {"Z", -0.5, 0.0, 0.5}};
-        p.segments = {{"X", "Gamma"}, {"Gamma", "Y"}, {"L", "Gamma"}, {"Gamma", "Z"}, {"N", "Gamma"}, {"Gamma", "M"}, {"R", "Gamma"}};
+        p.segments = {{"X", "Gamma"}, {"Gamma", "Y"}, {"L", "Gamma"}, {"Gamma", "Z"},
+                      {"N", "Gamma"}, {"Gamma", "M"}, {"R", "Gamma"}};
     }
     return p;
 }

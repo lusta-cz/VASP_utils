@@ -438,9 +438,9 @@ void POSCAR::displaceAtoms(int n_atoms, const DisplacementOptions& options) {
         candidates = options.candidate_indices;
     }
 
-    candidates.erase(std::remove_if(candidates.begin(), candidates.end(),
-                                    [this](size_t idx) { return idx >= coordinates.size(); }),
-                     candidates.end());
+    candidates.erase(
+        std::remove_if(candidates.begin(), candidates.end(), [this](size_t idx) { return idx >= coordinates.size(); }),
+        candidates.end());
 
     if (candidates.empty()) {
         return;
