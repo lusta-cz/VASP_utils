@@ -1,5 +1,7 @@
 Still under development. Currently, these utilities for POSCAR file manipulation are implemented:
 
+----Pre-processing utilities:----
+
 - poscar_d2c - fractional coordinates to cartesian
 - poscar_c2d - cartesian coordinates to fractional
 - poscar_symmetry - find symmetry of a cell
@@ -9,6 +11,10 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 - poscar_2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
 - poscar_atom_displace - randomly displace atoms
 - poscar_kpath - for automatic generation of path in the Brillouin zone for band structure calculation
+
+----Post-processing utilities:----
+
+- vasp_eigenval2bands - create data file for each path in 1BZ for simpler plotting
 
 For now, the code is as it is; nothing is guaranteed.
 
