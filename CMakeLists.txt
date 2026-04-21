@@ -58,6 +58,8 @@ target_link_libraries(vasp_core
     ${BLAS_LIBRARIES}
 )
 
+add_library(eigenval2bands src/eigenval2bands.cpp)
+target_link_libraries(eigenval2bands PRIVATE CLI11::CLI11)
 
 # ===== spglib-based helpers =====
 add_library(vasp_spglib
@@ -107,7 +109,8 @@ target_link_libraries(poscar_2conventional PRIVATE vasp_spglib CLI11::CLI11)
 
 # ===== Postprocessing utilities (no spglib) =====
 add_executable(vasp_eigenval2bands src/vasp_eigenval2bands.cpp)
-target_link_libraries(vasp_eigenval2bands PRIVATE CLI11::CLI11)
+target_link_libraries(vasp_eigenval2bands PRIVATE eigenval2bands CLI11::CLI11)
+
 
 
 # ===== Tests (GoogleTest) =====

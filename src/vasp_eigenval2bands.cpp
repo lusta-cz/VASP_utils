@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+#include "eigenval2bands.h"
+
 struct KPoint {
     double x, y, z;
     std::vector<double> energies_up;
