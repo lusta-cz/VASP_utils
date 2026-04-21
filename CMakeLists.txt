@@ -59,7 +59,9 @@ target_link_libraries(vasp_core
 )
 
 add_library(eigenval2bands src/eigenval2bands.cpp)
-target_link_libraries(eigenval2bands PRIVATE CLI11::CLI11)
+target_include_directories(eigenval2bands PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+)
 
 # ===== spglib-based helpers =====
 add_library(vasp_spglib
