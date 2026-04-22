@@ -150,6 +150,19 @@ target_link_libraries(vasp_kpath_tests PRIVATE vasp_kpath GTest::gtest_main)
 
 gtest_discover_tests(vasp_kpath_tests)
 
+add_executable(vasp_eigenval_tests
+    tests/test_vasp_eigenval2bands.cpp
+    tests/test_vasp_eigenval2bands_i_o.cpp
+)
+
+target_link_libraries(vasp_eigenval_tests PRIVATE eigenval2bands GTest::gtest_main)
+
+target_compile_definitions(vasp_eigenval_tests PRIVATE
+    TEST_DATA_DIR="${PROJECT_SOURCE_DIR}"
+)
+
+gtest_discover_tests(vasp_eigenval_tests)
+
 # ===== Documentation (Doxygen) =====
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
 if(DOXYGEN_FOUND)
