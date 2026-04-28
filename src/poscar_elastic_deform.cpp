@@ -80,10 +80,10 @@ int main(int argc, char* argv[]) {
     app.add_option("--amplitude,-a", amplitude,
                    "Maximum strain amplitude (dimensionless). Recommended: 0.01. Limit: 0.05.")
         ->capture_default_str()
-        ->check(CLI::Range(1e-6, 0.10));
+        ->check(CLI::Range(1e-3, 0.10));
     app.add_option("--npoints,-n", npoints,
-                   "Number of non-zero deformed structures per mode (must be even). "
-                   "Default: 6 for energy, 4 for stress.");
+                   "Number of deformed structures per mode including eqvilibrium structure (must be odd). "
+                   "Default: 7 for energy, 5 for stress.");
     app.add_flag("--yes,-y", yes_flag, "Skip confirmation prompt for large calculation sets");
 
     CLI11_PARSE(app, argc, argv);
