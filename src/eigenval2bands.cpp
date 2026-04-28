@@ -6,44 +6,9 @@
 #include <sstream>
 #include <string>
 
+#include "error_parse.h"
+
 namespace {
-
-enum class ParseErrorKind { Io, Parse, Semantic };
-
-struct ParseError {
-    ParseErrorKind kind{ParseErrorKind::Parse};
-    int line_number{0};
-    std::string message;
-};
-
-bool fail(ParseError& error, ParseErrorKind kind, int line_number, std::string message) {
-    error.kind = kind;
-    error.line_number = line_number;
-    error.message = std::move(message);
-    return false;
-}
-
-void reportParseError(const std::string& filename, const ParseError& error) {
-    const char* category = "Parse error";
-    if (error.kind == ParseErrorKind::Io)
-        category = "I/O error";
-    if (error.kind == ParseErrorKind::Semantic)
-        category = "Semantic error";
-    std::cerr << category << " reading from " << filename;
-    if (error.line_number > 0)
-        std::cerr << " at line " << error.line_number;
-    std::cerr << ": " << error.message << "\n";
-}
-
-bool readRequiredLine(std::ifstream& file, std::string& line, int& line_number, ParseError& error,
-                      const std::string& context) {
-    if (!std::getline(file, line)) {
-        return fail(error, file.bad() ? ParseErrorKind::Io : ParseErrorKind::Parse, line_number + 1,
-                    "unexpected end of file while reading " + context);
-    }
-    ++line_number;
-    return true;
-}
 
 // ---------------------------------------------------------------------------
 // DOSCAR

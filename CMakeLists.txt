@@ -75,6 +75,15 @@ target_include_directories(vasp_spglib PUBLIC
 
 target_link_libraries(vasp_spglib PUBLIC Spglib::symspg vasp_core)
 
+# ===== Elastic constants library =====
+add_library(vasp_elastic_lib src/elastic.cpp)
+target_include_directories(vasp_elastic_lib PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+)
+target_link_libraries(vasp_elastic_lib PUBLIC vasp_core)
+
+
+
 # ===== Standard utilities (no spglib) =====
 add_executable(poscar_atom_displace src/poscar_atom_displacement.cpp)
 target_link_libraries(poscar_atom_displace PRIVATE vasp_core CLI11::CLI11)
@@ -108,6 +117,10 @@ target_link_libraries(poscar_2primitive PRIVATE vasp_spglib CLI11::CLI11)
 
 add_executable(poscar_2conventional src/poscar_2conventional.cpp)
 target_link_libraries(poscar_2conventional PRIVATE vasp_spglib CLI11::CLI11)
+
+# ===== elastic constants utility =====
+add_executable(poscar_elastic_deform src/poscar_elastic_deform.cpp)
+target_link_libraries(poscar_elastic_deform PRIVATE vasp_elastic_lib vasp_spglib CLI11::CLI11)
 
 # ===== Postprocessing utilities (no spglib) =====
 add_executable(vasp_eigenval2bands src/vasp_eigenval2bands.cpp)
