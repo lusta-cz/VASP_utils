@@ -139,6 +139,25 @@ int main(int argc, char* argv[]) {
 
     const int n_independent = nIndependentConstants(cs);
 
+    if (method == "energy" && (cs == CrystalSystem::Monoclinic || cs == CrystalSystem::Triclinic)) {
+        std::cerr << "Warning: the energy-strain method requires " << n_independent << " strain modes for "
+                  << crystalSystemName(cs) << " symmetry,\n"
+                  << "         resulting in " << (n_independent * npoints + 1)
+                  << " VASP calculations. The stress-strain method needs only\n"
+                  << "         " << (6 * npoints + 1)
+                  << " calculations and is strongly recommended for this symmetry.\n"
+                  << "         Use --method stress to switch, or --yes/-y to proceed anyway.\n";
+        if (!yes_flag) {
+            std::cout << "Proceed? [y/N]: ";
+            std::string answer;
+            std::getline(std::cin, answer);
+            if (answer != "y" && answer != "Y") {
+                std::cout << "Aborted.\n";
+                return 0;
+            }
+        }
+    }
+
     // ── Select strain modes ──────────────────────────────────────────────────
     const std::vector<ElasticStrainMode> modes = (method == "energy") ? energyStrainModes(cs) : stressStrainModes();
 
@@ -180,7 +199,7 @@ int main(int argc, char* argv[]) {
 
     // ── Create reference directory ───────────────────────────────────────────
     const fs::path root(outputDir);
-    const fs::path ref_dir = root / "reference";
+    const fs::path ref_dir = root / "eqvilibrium";
     fs::create_directories(ref_dir);
     if (!poscar.writePOSCAR((ref_dir / "POSCAR").string())) {
         std::cerr << "Error: cannot write reference POSCAR\n";
