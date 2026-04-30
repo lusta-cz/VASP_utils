@@ -31,7 +31,7 @@ std::vector<double> buildAmplitudes(double amplitude, int npoints) {
     const int n_half = npoints / 2;
     const double step = amplitude / n_half;
     std::vector<double> amps;
-    amps.reserve(npoints);
+    amps.reserve(npoints - 1);
     for (int i = -n_half; i <= n_half; ++i) {
         if (i != 0)
             amps.push_back(i * step);
@@ -149,9 +149,9 @@ int main(int argc, char* argv[]) {
     if (method == "energy" && (cs == CrystalSystem::Monoclinic || cs == CrystalSystem::Triclinic)) {
         std::cerr << "Warning: the energy-strain method requires " << n_independent << " strain modes for "
                   << crystalSystemName(cs) << " symmetry,\n"
-                  << "         resulting in " << (n_independent * npoints + 1)
+                  << "         resulting in " << (1 + n_independent * (npoints - 1))
                   << " VASP calculations. The stress-strain method needs only\n"
-                  << "         " << (6 * npoints + 1)
+                  << "         " << (1 + 6 * (npoints - 1))
                   << " calculations and is strongly recommended for this symmetry.\n"
                   << "         Use --method stress to switch, or --yes/-y to proceed anyway.\n";
         if (!yes_flag) {
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
     if (total_calculations > 50) {
         std::cout << "\nWARNING: " << total_calculations << " VASP calculations required.\n";
         if (method == "energy" && symmetryMode == "none") {
-            std::cout << "         Consider --method stress (" << 6 * npoints + 1
+            std::cout << "         Consider --method stress (" << 1 + 6 * (npoints - 1)
                       << " calculations) or --symmetry auto to reduce the count.\n";
         }
         if (!yes_flag) {
