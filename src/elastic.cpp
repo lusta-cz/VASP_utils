@@ -101,7 +101,7 @@ std::vector<ElasticStrainMode> energyStrainModes(CrystalSystem cs) {
             // C11, C12, C13, C33, C44  (C66=(C11-C12)/2 by symmetry)
             return {
                 {"e1", {1, 0, 0, 0, 0, 0}, false},       {"e3", {0, 0, 1, 0, 0, 0}, false},
-                {"e1-e2", {1, -1, 0, 0, 0, 0}, true},     // → C11+C12
+                {"e1-e2", {1, -1, 0, 0, 0, 0}, true},     // → C11-C12
                 {"e1+e2+e3", {1, 1, 1, 0, 0, 0}, false},  // → C11+C12+C33+2C13
                 {"e4", {0, 0, 0, 1, 0, 0}, true},
             };
@@ -301,7 +301,6 @@ bool writeElasticLog(const std::string& path, const ElasticDeformLog& log) {
     f << "METHOD=" << log.method << "\n";
     f << "AMPLITUDE=" << log.amplitude << "\n";
     f << "NPOINTS=" << log.npoints << "\n";
-    f << "SOURCE_HINT=" << log.source_hint << "\n";
     f << "SYMMETRY_MODE=" << log.symmetry_mode << "\n";
     f << "CRYSTAL_SYSTEM=" << crystalSystemKey(log.crystal_system) << "\n";
     f << "SPACE_GROUP_NUMBER=" << log.space_group_number << "\n";
@@ -364,8 +363,6 @@ std::optional<ElasticDeformLog> readElasticLog(const std::string& path) {
             log.amplitude = std::stod(val);
         else if (key == "NPOINTS")
             log.npoints = std::stoi(val);
-        else if (key == "SOURCE_HINT")
-            log.source_hint = val;
         else if (key == "SYMMETRY_MODE")
             log.symmetry_mode = val;
         else if (key == "CRYSTAL_SYSTEM")
@@ -378,6 +375,8 @@ std::optional<ElasticDeformLog> readElasticLog(const std::string& path) {
             log.point_group = val;
         else if (key == "N_INDEPENDENT")
             log.n_independent = std::stoi(val);
+        else if (key == "VOLUME")
+            log.volume = std::stod(val);
         else if (key == "REFERENCE_DIR")
             log.reference_dir = val;
         else if (key == "N_MODES") {

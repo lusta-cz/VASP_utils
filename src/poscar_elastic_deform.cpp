@@ -1,4 +1,5 @@
 #include <CLI/CLI.hpp>
+#include <climits>
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
@@ -25,7 +26,7 @@ std::string fmtAmp(double amp) {
 }
 
 // Build the list of non-zero deformation amplitudes (symmetric about zero).
-// npoints must be even; step = amplitude / (npoints/2).
+// npoints must be odd; step = amplitude / (npoints/2).
 std::vector<double> buildAmplitudes(double amplitude, int npoints) {
     const int n_half = npoints / 2;
     const double step = amplitude / n_half;
@@ -191,7 +192,17 @@ int main(int argc, char* argv[]) {
     std::cout << "Point group:         " << (symmetryMode == "none" ? "1" : point_group) << "\n";
     std::cout << "Independent C_ij:    " << n_independent << "\n";
     std::cout << "Strain modes:        " << modes.size() << "\n";
-    std::cout << "Structures per mode: " << amps.size() << " deformed  +  1 shared reference\n";
+    int min_per_mode = INT_MAX, max_per_mode = 0;
+    for (const auto& mode : modes) {
+        int n = mode.symmetric ? static_cast<int>(amps.size()) / 2 : static_cast<int>(amps.size());
+        min_per_mode = std::min(min_per_mode, n);
+        max_per_mode = std::max(max_per_mode, n);
+    }
+    if (min_per_mode == max_per_mode)
+        std::cout << "Structures per mode: " << max_per_mode << " deformed  +  1 shared equilibrium\n";
+    else
+        std::cout << "Structures per mode: " << min_per_mode << "–" << max_per_mode << " deformed (symmetric modes use "
+                  << min_per_mode << ")  +  1 shared equilibrium\n";
     std::cout << "Amplitude range:     [" << fmtAmp(-amplitude) << ", " << fmtAmp(amplitude) << "]\n";
     std::cout << "Total calculations:  " << total_calculations << "\n";
 

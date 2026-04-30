@@ -49,8 +49,7 @@ struct ElasticStrainMode {
 struct ElasticDeformLog {
     std::string method;  ///< "energy" or "stress"
     double amplitude{0.01};
-    int npoints{6};             ///< Number of non-zero deformed structures per mode.
-    std::string source_hint;    ///< "vasprun", "outcar", or "oszicar"
+    int npoints{7};             ///< Number of deformed structures per mode including equilibrium structure.
     std::string symmetry_mode;  ///< "auto" or "none"
     CrystalSystem crystal_system{CrystalSystem::Triclinic};
     int space_group_number{1};
