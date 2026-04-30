@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
         ->capture_default_str()
         ->check(CLI::Range(1e-3, 0.10));
     app.add_option("--npoints,-n", npoints,
-                   "Number of deformed structures per mode including eqvilibrium structure (must be odd). "
+                   "Number of deformed structures per mode including equilibrium structure (must be odd). "
                    "Default: 7 for energy, 5 for stress.");
     app.add_flag("--yes,-y", yes_flag, "Skip confirmation prompt for large calculation sets");
 
@@ -117,6 +117,12 @@ int main(int argc, char* argv[]) {
     if (!poscar.is_direct) {
         poscar.toDirect();
     }
+
+    // Calculate volume
+    const auto& L = poscar.lattice;
+    const double vol =
+        std::abs(L[0][0] * (L[1][1] * L[2][2] - L[1][2] * L[2][1]) - L[0][1] * (L[1][0] * L[2][2] - L[1][2] * L[2][0]) +
+                 L[0][2] * (L[1][0] * L[2][1] - L[1][1] * L[2][0]));
 
     // ── Determine crystal system ─────────────────────────────────────────────
     CrystalSystem cs = CrystalSystem::Triclinic;
@@ -162,7 +168,16 @@ int main(int argc, char* argv[]) {
     const std::vector<ElasticStrainMode> modes = (method == "energy") ? energyStrainModes(cs) : stressStrainModes();
 
     const std::vector<double> amps = buildAmplitudes(amplitude, npoints);
-    const int total_calculations = static_cast<int>(modes.size()) * static_cast<int>(amps.size()) + 1;
+
+    int total_calculations = 1;  // start with 1 for the reference structure
+    for (const auto& mode : modes) {
+        if (mode.symmetric) {
+            // Only positive amplitudes (half of the total amps)
+            total_calculations += static_cast<int>(amps.size()) / 2;
+        } else {
+            total_calculations += static_cast<int>(amps.size());
+        }
+    }
 
     // ── Print summary and warn if large ─────────────────────────────────────
     std::cout << "=== Elastic Deformation Generator ===\n";
@@ -199,7 +214,7 @@ int main(int argc, char* argv[]) {
 
     // ── Create reference directory ───────────────────────────────────────────
     const fs::path root(outputDir);
-    const fs::path ref_dir = root / "eqvilibrium";
+    const fs::path ref_dir = root / "equilibrium";
     fs::create_directories(ref_dir);
     if (!poscar.writePOSCAR((ref_dir / "POSCAR").string())) {
         std::cerr << "Error: cannot write reference POSCAR\n";
@@ -217,7 +232,8 @@ int main(int argc, char* argv[]) {
     log.space_group_symbol = spg_symbol;
     log.point_group = point_group;
     log.n_independent = n_independent;
-    log.reference_dir = "reference";
+    log.volume = vol;
+    log.reference_dir = "equilibrium";
     log.modes = modes;
     log.amplitudes.resize(modes.size());
     log.dirs.resize(modes.size());
@@ -229,6 +245,12 @@ int main(int argc, char* argv[]) {
         const fs::path mode_dir = root / mode_dir_name;
 
         for (double amp : amps) {
+            // If the deformation is symetric (E(e)=E(-e)), make only deformations with positive amplitudes to reduce
+            // computational costs
+            if (mode.symmetric && amp < 0.0) {
+                continue;
+            }
+
             const std::string amp_dir_name = "amp_" + fmtAmp(amp);
             const fs::path amp_dir = mode_dir / amp_dir_name;
 

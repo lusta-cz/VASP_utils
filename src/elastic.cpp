@@ -92,70 +92,76 @@ std::vector<ElasticStrainMode> energyStrainModes(CrystalSystem cs) {
         case CrystalSystem::Cubic:
             // C11, C12, C44  (C11=C22=C33, C12=C13=C23, C44=C55=C66)
             return {
-                {"vol", {1, 1, 1, 0, 0, 0}},     // E ~ (C11+2C12)/2
-                {"e1-e2", {1, -1, 0, 0, 0, 0}},  // E ~ (C11-C12)
-                {"e4", {0, 0, 0, 1, 0, 0}},      // E ~ C44/2
+                {"vol", {1, 1, 1, 0, 0, 0}, false},    // E ~ (C11+2C12)/2
+                {"e1-e2", {1, -1, 0, 0, 0, 0}, true},  // E ~ (C11-C12)
+                {"e4", {0, 0, 0, 1, 0, 0}, true},      // E ~ C44/2
             };
 
         case CrystalSystem::Hexagonal:
             // C11, C12, C13, C33, C44  (C66=(C11-C12)/2 by symmetry)
             return {
-                {"e1", {1, 0, 0, 0, 0, 0}},       {"e3", {0, 0, 1, 0, 0, 0}},
-                {"e1+e2", {1, 1, 0, 0, 0, 0}},     // → C11+C12
-                {"e1+e2+e3", {1, 1, 1, 0, 0, 0}},  // → C11+C12+C33+2C13
-                {"e4", {0, 0, 0, 1, 0, 0}},
+                {"e1", {1, 0, 0, 0, 0, 0}, false},       {"e3", {0, 0, 1, 0, 0, 0}, false},
+                {"e1-e2", {1, -1, 0, 0, 0, 0}, true},     // → C11+C12
+                {"e1+e2+e3", {1, 1, 1, 0, 0, 0}, false},  // → C11+C12+C33+2C13
+                {"e4", {0, 0, 0, 1, 0, 0}, true},
             };
 
         case CrystalSystem::TrigonalII:
             // C11, C12, C13, C33, C44, C14  (C66=(C11-C12)/2)
             return {
-                {"e1", {1, 0, 0, 0, 0, 0}},    {"e3", {0, 0, 1, 0, 0, 0}},
-                {"e1+e2", {1, 1, 0, 0, 0, 0}}, {"e1+e2+e3", {1, 1, 1, 0, 0, 0}},
-                {"e4", {0, 0, 0, 1, 0, 0}},    {"e1+e4", {1, 0, 0, 1, 0, 0}},  // → C11+C44+2C14
+                {"e1", {1, 0, 0, 0, 0, 0}, false},    {"e3", {0, 0, 1, 0, 0, 0}, false},
+                {"e1+e2", {1, 1, 0, 0, 0, 0}, false}, {"e1+e2+e3", {1, 1, 1, 0, 0, 0}, false},
+                {"e4", {0, 0, 0, 1, 0, 0}, true},     {"e1+e4", {1, 0, 0, 1, 0, 0}, false},  // → C11+C44+2C14
             };
 
         case CrystalSystem::TrigonalI:
             // C11, C12, C13, C33, C44, C14, C25  (C66=(C11-C12)/2)
             return {
-                {"e1", {1, 0, 0, 0, 0, 0}},       {"e3", {0, 0, 1, 0, 0, 0}}, {"e1+e2", {1, 1, 0, 0, 0, 0}},
-                {"e1+e2+e3", {1, 1, 1, 0, 0, 0}}, {"e4", {0, 0, 0, 1, 0, 0}}, {"e1+e4", {1, 0, 0, 1, 0, 0}},
-                {"e2+e5", {0, 1, 0, 0, 1, 0}},  // → C22+C55+2C25
+                {"e1", {1, 0, 0, 0, 0, 0}, false},    {"e3", {0, 0, 1, 0, 0, 0}, false},
+                {"e1+e2", {1, 1, 0, 0, 0, 0}, false}, {"e1+e2+e3", {1, 1, 1, 0, 0, 0}, false},
+                {"e4", {0, 0, 0, 1, 0, 0}, true},     {"e1+e4", {1, 0, 0, 1, 0, 0}, false},
+                {"e2+e5", {0, 1, 0, 0, 1, 0}, false},  // → C22+C55+2C25
             };
 
         case CrystalSystem::TetragonalII:
             // C11, C12, C13, C33, C44, C66  (C11=C22, C44=C55)
             return {
-                {"e1", {1, 0, 0, 0, 0, 0}},       {"e3", {0, 0, 1, 0, 0, 0}}, {"e1+e2", {1, 1, 0, 0, 0, 0}},
-                {"e1+e2+e3", {1, 1, 1, 0, 0, 0}}, {"e4", {0, 0, 0, 1, 0, 0}}, {"e6", {0, 0, 0, 0, 0, 1}},
+                {"e1", {1, 0, 0, 0, 0, 0}, false},    {"e3", {0, 0, 1, 0, 0, 0}, false},
+                {"e1-e2", {1, -1, 0, 0, 0, 0}, true}, {"e1+e2+e3", {1, 1, 1, 0, 0, 0}, false},
+                {"e4", {0, 0, 0, 1, 0, 0}, true},     {"e6", {0, 0, 0, 0, 0, 1}, true},
             };
 
         case CrystalSystem::TetragonalI:
             // C11, C12, C13, C33, C44, C66, C16
             return {
-                {"e1", {1, 0, 0, 0, 0, 0}},       {"e3", {0, 0, 1, 0, 0, 0}}, {"e1+e2", {1, 1, 0, 0, 0, 0}},
-                {"e1+e2+e3", {1, 1, 1, 0, 0, 0}}, {"e4", {0, 0, 0, 1, 0, 0}}, {"e6", {0, 0, 0, 0, 0, 1}},
-                {"e1+e6", {1, 0, 0, 0, 0, 1}},  // → C11+C66+2C16
+                {"e1", {1, 0, 0, 0, 0, 0}, false},    {"e3", {0, 0, 1, 0, 0, 0}, false},
+                {"e1-e2", {1, -1, 0, 0, 0, 0}, true}, {"e1+e2+e3", {1, 1, 1, 0, 0, 0}, false},
+                {"e4", {0, 0, 0, 1, 0, 0}, true},     {"e6", {0, 0, 0, 0, 0, 1}, true},
+                {"e1+e6", {1, 0, 0, 0, 0, 1}, false},  // → C11+C66+2C16
             };
 
         case CrystalSystem::Orthorhombic:
             // C11, C22, C33, C12, C13, C23, C44, C55, C66
             return {
-                {"e1", {1, 0, 0, 0, 0, 0}},    {"e2", {0, 1, 0, 0, 0, 0}},    {"e3", {0, 0, 1, 0, 0, 0}},
-                {"e1+e2", {1, 1, 0, 0, 0, 0}}, {"e1+e3", {1, 0, 1, 0, 0, 0}}, {"e2+e3", {0, 1, 1, 0, 0, 0}},
-                {"e4", {0, 0, 0, 1, 0, 0}},    {"e5", {0, 0, 0, 0, 1, 0}},    {"e6", {0, 0, 0, 0, 0, 1}},
+                {"e1", {1, 0, 0, 0, 0, 0}, false},    {"e2", {0, 1, 0, 0, 0, 0}, false},
+                {"e3", {0, 0, 1, 0, 0, 0}, false},    {"e1+e2", {1, 1, 0, 0, 0, 0}, false},
+                {"e1+e3", {1, 0, 1, 0, 0, 0}, false}, {"e2+e3", {0, 1, 1, 0, 0, 0}, false},
+                {"e4", {0, 0, 0, 1, 0, 0}, true},     {"e5", {0, 0, 0, 0, 1, 0}, true},
+                {"e6", {0, 0, 0, 0, 0, 1}, true},
             };
 
         case CrystalSystem::Monoclinic:
             // 13 constants (monoclinic-b convention):
             // C11,C22,C33,C44,C55,C66,C12,C13,C23,C15,C25,C35,C46
             return {
-                {"e1", {1, 0, 0, 0, 0, 0}},    {"e2", {0, 1, 0, 0, 0, 0}},    {"e3", {0, 0, 1, 0, 0, 0}},
-                {"e1+e2", {1, 1, 0, 0, 0, 0}}, {"e1+e3", {1, 0, 1, 0, 0, 0}}, {"e2+e3", {0, 1, 1, 0, 0, 0}},
-                {"e4", {0, 0, 0, 1, 0, 0}},    {"e5", {0, 0, 0, 0, 1, 0}},    {"e6", {0, 0, 0, 0, 0, 1}},
-                {"e1+e5", {1, 0, 0, 0, 1, 0}},  // → C11+C55+2C15
-                {"e2+e5", {0, 1, 0, 0, 1, 0}},  // → C22+C55+2C25
-                {"e3+e5", {0, 0, 1, 0, 1, 0}},  // → C33+C55+2C35
-                {"e4+e6", {0, 0, 0, 1, 0, 1}},  // → C44+C66+2C46
+                {"e1", {1, 0, 0, 0, 0, 0}, false},    {"e2", {0, 1, 0, 0, 0, 0}, false},
+                {"e3", {0, 0, 1, 0, 0, 0}, false},    {"e1+e2", {1, 1, 0, 0, 0, 0}, false},
+                {"e1+e3", {1, 0, 1, 0, 0, 0}, false}, {"e2+e3", {0, 1, 1, 0, 0, 0}, false},
+                {"e4", {0, 0, 0, 1, 0, 0}, false},    {"e5", {0, 0, 0, 0, 1, 0}, false},
+                {"e6", {0, 0, 0, 0, 0, 1}, false},    {"e1+e5", {1, 0, 0, 0, 1, 0}, false},  // → C11+C55+2C15
+                {"e2+e5", {0, 1, 0, 0, 1, 0}, false},                                        // → C22+C55+2C25
+                {"e3+e5", {0, 0, 1, 0, 1, 0}, false},                                        // → C33+C55+2C35
+                {"e4+e6", {0, 0, 0, 1, 0, 1}, false},                                        // → C44+C66+2C46
             };
 
         case CrystalSystem::Triclinic:
@@ -167,7 +173,7 @@ std::vector<ElasticStrainMode> energyStrainModes(CrystalSystem cs) {
             for (int i = 0; i < 6; ++i) {
                 std::array<double, 6> v{};
                 v[i] = 1.0;
-                modes.push_back({pure_labels[i], v});
+                modes.push_back({pure_labels[i], v, false});
             }
             // 15 mixed modes
             for (int i = 0; i < 6; ++i) {
@@ -175,7 +181,7 @@ std::vector<ElasticStrainMode> energyStrainModes(CrystalSystem cs) {
                     std::array<double, 6> v{};
                     v[i] = 1.0;
                     v[j] = 1.0;
-                    modes.push_back({"e" + std::to_string(i + 1) + "+e" + std::to_string(j + 1), v});
+                    modes.push_back({"e" + std::to_string(i + 1) + "+e" + std::to_string(j + 1), v, false});
                 }
             }
             return modes;
@@ -302,6 +308,7 @@ bool writeElasticLog(const std::string& path, const ElasticDeformLog& log) {
     f << "SPACE_GROUP_SYMBOL=" << log.space_group_symbol << "\n";
     f << "POINT_GROUP=" << log.point_group << "\n";
     f << "N_INDEPENDENT=" << log.n_independent << "\n";
+    f << "VOLUME=" << log.volume << "\n";
     f << "N_MODES=" << static_cast<int>(log.modes.size()) << "\n";
     f << "REFERENCE_DIR=" << log.reference_dir << "\n";
 

@@ -38,6 +38,7 @@ enum class CrystalSystem {
 struct ElasticStrainMode {
     std::string label;            ///< Human-readable label, e.g. "C11-C12" or "e1+e2".
     std::array<double, 6> voigt;  ///< Unit Voigt strain vector.
+    bool symmetric{false};
 };
 
 /**
@@ -56,6 +57,7 @@ struct ElasticDeformLog {
     std::string space_group_symbol;
     std::string point_group;
     int n_independent{21};
+    double volume{0.0};
     std::string reference_dir;  ///< Relative path to the reference (zero-strain) directory.
     std::vector<ElasticStrainMode> modes;
     std::vector<std::vector<double>> amplitudes;  ///< amplitudes[mode][amp_idx]
