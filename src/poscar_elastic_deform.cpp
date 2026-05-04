@@ -57,7 +57,7 @@ bool writeDeformedPOSCAR(const POSCAR& poscar, const std::array<double, 6>& voig
 }  // namespace
 
 int main(int argc, char* argv[]) {
-    CLI::App app{"Generate defomred POSCAR files for elastic constants calculation"};
+    CLI::App app{"Generate deformed POSCAR files for elastic constants calculation"};
 
     std::string inputFile{"POSCAR"};
     std::string outputDir;
@@ -117,6 +117,14 @@ int main(int argc, char* argv[]) {
     // Poscar is easier to handel in direct coordinates
     if (!poscar.is_direct) {
         poscar.toDirect();
+    }
+
+    std::cout << "Input (standardized):  primitive cell, " << poscar.total_atoms << " atoms\n";
+    auto std_result = standardizeCell(poscar, 1e-5, 1, 0);
+    if (!std_result) {
+        std::cerr << "Warning: cell standardization failed, using input as-is.\n";
+    } else {
+        poscar = std::move(*std_result);
     }
 
     // Calculate volume
@@ -256,7 +264,7 @@ int main(int argc, char* argv[]) {
         const fs::path mode_dir = root / mode_dir_name;
 
         for (double amp : amps) {
-            // If the deformation is symetric (E(e)=E(-e)), make only deformations with positive amplitudes to reduce
+            // If the deformation is symmetric (E(e)=E(-e)), make only deformations with positive amplitudes to reduce
             // computational costs
             if (mode.symmetric && amp < 0.0) {
                 continue;

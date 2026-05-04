@@ -119,7 +119,7 @@ std::vector<ElasticStrainMode> energyStrainModes(CrystalSystem cs) {
             return {
                 {"e1", {1, 0, 0, 0, 0, 0}, false},    {"e3", {0, 0, 1, 0, 0, 0}, false},
                 {"e1+e2", {1, 1, 0, 0, 0, 0}, false}, {"e1+e2+e3", {1, 1, 1, 0, 0, 0}, false},
-                {"e4", {0, 0, 0, 1, 0, 0}, true},     {"e1+e4", {1, 0, 0, 1, 0, 0}, false},
+                {"e4", {0, 0, 0, 1, 0, 0}, false},    {"e1+e4", {1, 0, 0, 1, 0, 0}, false},
                 {"e2+e5", {0, 1, 0, 0, 1, 0}, false},  // → C22+C55+2C25
             };
 
