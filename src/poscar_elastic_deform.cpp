@@ -119,12 +119,17 @@ int main(int argc, char* argv[]) {
         poscar.toDirect();
     }
 
-    std::cout << "Input (standardized):  primitive cell, " << poscar.total_atoms << " atoms\n";
-    auto std_result = standardizeCell(poscar, 1e-5, 1, 0);
-    if (!std_result) {
-        std::cerr << "Warning: cell standardization failed, using input as-is.\n";
+    if (symmetryMode != "none") {
+        auto std_result = standardizeCell(poscar, 1e-5, 1, 0);
+        if (!std_result) {
+            std::cerr << "Warning: cell standardization failed, using input as-is.\n";
+        } else {
+            poscar = std::move(*std_result);
+            std::cout << "Cell standardized to primitive: " << poscar.total_atoms << " atoms\n";
+        }
     } else {
-        poscar = std::move(*std_result);
+        std::cerr << "Warning: the cell may NOT be in standard orientation to cartesian coordinates! Thus, nothing is "
+                     "guaranteed!\n";
     }
 
     // Calculate volume
