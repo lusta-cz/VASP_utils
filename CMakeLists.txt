@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(VaspUtils VERSION 0.1.10 LANGUAGES C CXX)
+project(VaspUtils VERSION 0.1.11 LANGUAGES C CXX)
 
 include(FetchContent)
 
@@ -125,6 +125,9 @@ target_link_libraries(poscar_elastic_deform PRIVATE vasp_elastic_lib vasp_spglib
 # ===== Postprocessing utilities (no spglib) =====
 add_executable(vasp_eigenval2bands src/vasp_eigenval2bands.cpp)
 target_link_libraries(vasp_eigenval2bands PRIVATE eigenval2bands CLI11::CLI11)
+
+add_executable(vasp_elastic_fit src/vasp_elastic_fit.cpp)
+target_link_libraries(vasp_elastic_fit PRIVATE vasp_elastic_lib CLI11::CLI11)
 
 
 
