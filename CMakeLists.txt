@@ -197,6 +197,27 @@ target_compile_definitions(vasp_eigenval_tests PRIVATE
 
 gtest_discover_tests(vasp_eigenval_tests)
 
+add_executable(vasp_elastic_tests
+    tests/test_elastic.cpp
+)
+target_link_libraries(vasp_elastic_tests PRIVATE vasp_elastic_lib GTest::gtest_main)
+gtest_discover_tests(vasp_elastic_tests)
+
+add_executable(vasp_symmetry_tests
+    tests/test_symmetry.cpp
+)
+target_link_libraries(vasp_symmetry_tests PRIVATE vasp_spglib GTest::gtest_main)
+target_compile_definitions(vasp_symmetry_tests PRIVATE
+    TEST_DATA_DIR="${PROJECT_SOURCE_DIR}"
+)
+gtest_discover_tests(vasp_symmetry_tests)
+
+add_executable(vasp_random_tests
+    tests/test_random_utility.cpp
+)
+target_link_libraries(vasp_random_tests PRIVATE vasp_core GTest::gtest_main)
+gtest_discover_tests(vasp_random_tests)
+
 # ===== Documentation (Doxygen) =====
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
 if(DOXYGEN_FOUND)
