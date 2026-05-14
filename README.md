@@ -11,7 +11,7 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 - poscar_2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
 - poscar_atom_displace - randomly displace atoms
 - poscar_kpath - for automatic generation of path in the Brillouin zone for band structure calculation
-- oscar_surface - generate surface slab from a bulk structure
+- poscar_surface - generate surface slab from a bulk structure
 - poscar_elastic_deform - generate deformed structures to calculate elastic constants (both energy-strain and stress-strain approaches)
 
 ----Post-processing utilities:----
