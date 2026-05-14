@@ -82,7 +82,12 @@ target_include_directories(vasp_elastic_lib PUBLIC
 )
 target_link_libraries(vasp_elastic_lib PUBLIC vasp_core)
 
-
+# ===== Surface slab library =====
+add_library(vasp_surface_lib src/surface.cpp)
+target_include_directories(vasp_surface_lib PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+)
+target_link_libraries(vasp_surface_lib PUBLIC vasp_core)
 
 # ===== Standard utilities (no spglib) =====
 add_executable(poscar_atom_displace src/poscar_atom_displacement.cpp)
@@ -117,6 +122,10 @@ target_link_libraries(poscar_2primitive PRIVATE vasp_spglib CLI11::CLI11)
 
 add_executable(poscar_2conventional src/poscar_2conventional.cpp)
 target_link_libraries(poscar_2conventional PRIVATE vasp_spglib CLI11::CLI11)
+
+# ===== surface slab utility =====
+add_executable(poscar_surface src/poscar_surface.cpp)
+target_link_libraries(poscar_surface PRIVATE vasp_surface_lib vasp_spglib CLI11::CLI11)
 
 # ===== elastic constants utility =====
 add_executable(poscar_elastic_deform src/poscar_elastic_deform.cpp)
@@ -165,6 +174,15 @@ add_executable(vasp_kpath_tests
 target_link_libraries(vasp_kpath_tests PRIVATE vasp_kpath GTest::gtest_main)
 
 gtest_discover_tests(vasp_kpath_tests)
+
+add_executable(vasp_surface_tests
+    tests/test_surface.cpp
+)
+target_link_libraries(vasp_surface_tests PRIVATE vasp_surface_lib GTest::gtest_main)
+target_compile_definitions(vasp_surface_tests PRIVATE
+    TEST_DATA_DIR="${PROJECT_SOURCE_DIR}"
+)
+gtest_discover_tests(vasp_surface_tests)
 
 add_executable(vasp_eigenval_tests
     tests/test_vasp_eigenval2bands.cpp
