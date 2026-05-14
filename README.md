@@ -11,6 +11,7 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 - poscar_2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
 - poscar_atom_displace - randomly displace atoms
 - poscar_kpath - for automatic generation of path in the Brillouin zone for band structure calculation
+- oscar_surface - generate surface slab from a bulk structure
 - poscar_elastic_deform - generate deformed structures to calculate elastic constants (both energy-strain and stress-strain approaches)
 
 ----Post-processing utilities:----
@@ -51,6 +52,57 @@ Defaults: input `POSCAR`, output `POSCAR_cartesian`.
 poscar_c2d [--input/-i <file>] [--output/-o <file>]
 ```
 Defaults: input `POSCAR`, output `POSCAR_direct`.
+
+
+**poscar_supercell** — Build a diagonal supercell
+```
+poscar_supercell [--input/-i <file>] [--output/-o <file>] [--dim <nx> <ny> <nz>]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `POSCAR` | Input POSCAR file |
+| `--output/-o` | `POSCAR_nx_ny_nz` | Output POSCAR file |
+| `--dim` | `1 1 1` | Supercell dimensions along each lattice vector |
+
+Example:
+```
+poscar_supercell --dim 2 2 3
+```
+
+**poscar_2primitive** — Convert to primitive cell using spglib
+```
+poscar_2primitive [--input/-i <file>] [--output/-o <file>] [--symprec <float>] [--idealize]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `POSCAR` | Input POSCAR file |
+| `--output/-o` | `POSCAR_primitive` | Output POSCAR file |
+| `--symprec` | `1e-5` | Symmetry tolerance |
+| `--idealize` | off | Idealize lattice parameters of the primitive cell |
+
+**poscar_2conventional** — Convert to conventional cell using spglib
+```
+poscar_2conventional [--input/-i <file>] [--output/-o <file>] [--symprec <float>] [--idealize]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `POSCAR` | Input POSCAR file |
+| `--output/-o` | `POSCAR_conventional` | Output POSCAR file |
+| `--symprec` | `1e-5` | Symmetry tolerance |
+| `--idealize` | off | Idealize lattice parameters of the conventional cell |
+
+**poscar_2ctrls** — Convert POSCAR to ctrls.in format for ecalj/Questaal
+```
+poscar_2ctrls [--input/-i <file>] [--output/-o <file>]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `POSCAR` | Input POSCAR file |
+| `--output/-o` | `ctrls.in` | Output ctrls file |
 
 **poscar_atom_displace** — Randomly displace atoms to generate perturbed structures
 ```
@@ -100,6 +152,159 @@ poscar_symmetry [--input/-i <file>] [--output/-o <file>] [--symprec <float>]
 | `--primitive/-p` | off | Generate and write primitive cell |
 | `--wyckoff/-w` | off | Print Wyckoff positions |
 | `--symoper/-s` | off | Print all symmetry operations |
+
+**poscar_kpath** — Generate a KPOINTS file for band structure calculations
+```
+poscar_kpath [--input/-i <file>] [--output/-o <file>] [--prim <file>]
+             [--symprec <float>] [--nkpts/-n <int>] [--no-prim]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `POSCAR` | Input POSCAR file |
+| `--output/-o` | `KPOINTS` | Output KPOINTS file (line mode) |
+| `--prim` | `POSCAR_primitive` | Output file for the primitive cell POSCAR |
+| `--symprec` | `1e-5` | Symmetry tolerance for spglib |
+| `--nkpts/-n` | `20` | Number of k-points per segment |
+| `--no-prim` | off | Do not write the primitive cell POSCAR |
+
+The k-path follows the Setyawan & Curtarolo convention (Comp. Mat. Sci. 49, 299, 2010) and covers all 14 Bravais lattice types.
+
+Example:
+```
+poscar_kpath -i POSCAR_primitive --nkpts 40
+```
+
+**poscar_surface** — Build a surface slab from a bulk structure
+```
+poscar_surface [--input/-i <file>] [--output/-o <file>] --miller/-m <h> <k> <l>
+               --layers/-n <int> [--frozen/-f <int>] [--vacuum/-v <float>]
+               [--primitive/-p] [--symprec <float>]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `POSCAR` | Input bulk POSCAR file |
+| `--output/-o` | `POSCAR_surface_hkl` | Output slab POSCAR file |
+| `--miller/-m` | required | Miller indices h k l (three integers) |
+| `--layers/-n` | required | Number of atomic layers in the slab |
+| `--frozen/-f` | `0` | Number of bottom layers frozen with Selective Dynamics F F F |
+| `--vacuum/-v` | `15.0` | Vacuum thickness in Angstroms |
+| `--primitive/-p` | off | Convert input to primitive cell before building the slab |
+| `--symprec` | `1e-5` | Symmetry tolerance for primitive-cell conversion |
+
+Examples:
+```
+# (001) slab with 6 layers, 2 frozen at the bottom, 20 Å vacuum
+poscar_surface -i POSCAR -m 0 0 1 -n 6 --frozen 2 --vacuum 20
+
+# (110) surface starting from the primitive cell
+poscar_surface -i POSCAR -m 1 1 0 -n 8 --primitive
+```
+
+**poscar_elastic_deform** — Generate strained structures for elastic constant calculations
+```
+poscar_elastic_deform [--input/-i <file>] --output/-o <dir> --method/-m <energy|stress>
+                      [--symmetry/-s <auto|none>] [--amplitude/-a <float>]
+                      [--npoints/-n <int>] [--yes/-y]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `POSCAR` | Input equilibrium POSCAR |
+| `--output/-o` | required | Root output directory for deformed structures |
+| `--method/-m` | required | `energy` (energy-strain) or `stress` (stress-strain) |
+| `--symmetry/-s` | `auto` | `auto` (detect crystal system via spglib) or `none` (triclinic, 21 constants) |
+| `--amplitude/-a` | `0.01` | Maximum strain amplitude (dimensionless, range 0.001–0.10) |
+| `--npoints/-n` | `7` (energy) / `5` (stress) | Deformed structures per mode (must be odd, ≥ 3) |
+| `--yes/-y` | off | Skip confirmation prompt for large calculation sets |
+
+The tool writes a manifest file `elastic_deform.log` inside the output directory, which is consumed by `vasp_elastic_fit`.
+
+Example:
+```
+# Energy-strain method, 9 points per mode, amplitude 0.02
+poscar_elastic_deform -i POSCAR -o elastic_run --method energy --npoints 9 --amplitude 0.02
+
+# Stress-strain method with automatic symmetry detection
+poscar_elastic_deform -i POSCAR -o elastic_run --method stress
+```
+
+**vasp_eigenval2bands** — Extract band structure data from a VASP EIGENVAL file
+```
+vasp_eigenval2bands [--input/-i <file>] [--kpoints/-k <file>]
+                    [--fermi-source <doscar|outcar|manual|none>]
+                    [--doscar <file>] [--outcar <file>] [--fermi/-e <float>]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `EIGENVAL` | Input EIGENVAL file |
+| `--kpoints/-k` | `KPOINTS` | KPOINTS file from the band structure calculation |
+| `--fermi-source` | `doscar` | Fermi level source: `doscar`, `outcar`, `manual`, or `none` |
+| `--doscar` | `DOSCAR` | DOSCAR file (used with `--fermi-source=doscar`) |
+| `--outcar` | `OUTCAR` | OUTCAR file (used with `--fermi-source=outcar`) |
+| `--fermi/-e` | `0.0` | Manual Fermi level in eV (used with `--fermi-source=manual`) |
+
+One output file is written per k-path segment defined in the KPOINTS file. Energies are shifted so that the Fermi level is at 0 eV (unless `--fermi-source=none`).
+
+Examples:
+```
+# Default: read Fermi level from DOSCAR
+vasp_eigenval2bands
+
+# Fermi level from OUTCAR
+vasp_eigenval2bands --fermi-source outcar
+
+# Supply Fermi level manually
+vasp_eigenval2bands --fermi-source manual --fermi 3.456
+```
+
+**vasp_elastic_fit** — Fit elastic constants from strained-structure VASP calculations
+```
+vasp_elastic_fit [--log/-l <file>] [--source/-s <oszicar|outcar|vasprun>]
+                 [--output/-o <file>] [--terminal/-t] [--averages/-a]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--log/-l` | `elastic_deform.log` | Manifest written by `poscar_elastic_deform` |
+| `--source/-s` | `oszicar` (energy) / `outcar` (stress) | Data source: `oszicar`, `outcar`, or `vasprun` |
+| `--output/-o` | `elastic_constants.dat` | Output file for the C_ij table |
+| `--terminal/-t` | off | Print C_ij to terminal only; do not write an output file |
+| `--averages/-a` | off | Compute and print Voigt-Reuss-Hill polycrystalline averages |
+
+Reads the manifest produced by `poscar_elastic_deform`, collects energies or stresses from each deformed-structure directory, and fits the full elastic tensor using least squares.
+
+Example:
+```
+# Fit from energy calculations and print polycrystalline averages
+vasp_elastic_fit --log elastic_run/elastic_deform.log --averages
+
+# Stress-strain fit, read from OUTCAR, terminal output only
+vasp_elastic_fit -l elastic_run/elastic_deform.log --source outcar --terminal
+```
+
+----Testing:----
+
+Tests are built alongside the project and use GoogleTest (fetched automatically by CMake).
+
+```
+cd build
+ctest --output-on-failure
+```
+
+Test executables and what they cover:
+
+| Executable | Source files | Coverage |
+|---|---|---|
+| `vasp_tests` | `test_poscar_io.cpp`, `test_coordinate_conversion.cpp`, `test_displacement.cpp` | POSCAR read/write, Direct↔Cartesian conversion, atom displacement |
+| `vasp_kpath_tests` | `test_kpath.cpp` | k-path generation for all 14 Bravais lattice types |
+| `vasp_surface_tests` | `test_surface.cpp` | Surface slab construction and validation |
+| `vasp_eigenval_tests` | `test_vasp_eigenval2bands.cpp`, `test_vasp_eigenval2bands_i_o.cpp` | EIGENVAL/DOSCAR/OUTCAR/KPOINTS parsing and error handling |
+| `vasp_elastic_tests` | `test_elastic.cpp` | Crystal system classification, strain modes, strain application, log file I/O |
+| `vasp_symmetry_tests` | `test_symmetry.cpp` | spglib wrapper: lattice transpose, symmetry analysis, cell standardization |
+| `vasp_random_tests` | `test_random_utility.cpp` | RNG range, determinism, seeding |
 
 ----Dependencies:----
 
