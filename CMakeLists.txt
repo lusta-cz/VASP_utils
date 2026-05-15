@@ -45,6 +45,9 @@ set(SPGLIB_WITH_TESTS   OFF CACHE BOOL "" FORCE)
 
 set(BUILD_TESTING OFF)
 FetchContent_MakeAvailable(spglib)
+if(TEST cpptest)
+    set_tests_properties(cpptest PROPERTIES DISABLED TRUE)
+endif()
 set(BUILD_TESTING ON)
 
 # ===== BLAS / LAPACK =====
