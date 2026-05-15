@@ -43,7 +43,9 @@ set(SPGLIB_WITH_Fortran OFF CACHE BOOL "" FORCE)
 set(SPGLIB_WITH_Python  OFF CACHE BOOL "" FORCE)
 set(SPGLIB_WITH_TESTS   OFF CACHE BOOL "" FORCE)
 
+set(BUILD_TESTING OFF)
 FetchContent_MakeAvailable(spglib)
+set(BUILD_TESTING ON)
 
 # ===== BLAS / LAPACK =====
 find_package(BLAS REQUIRED)
