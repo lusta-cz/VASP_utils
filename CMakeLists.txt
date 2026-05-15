@@ -3,6 +3,9 @@ project(VaspUtils VERSION 0.2.2 LANGUAGES C CXX)
 
 include(FetchContent)
 
+# Required so spglib's static lib can be linked into shared libraries
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # ===== CLI11 =====
 FetchContent_Declare(
     cli11
