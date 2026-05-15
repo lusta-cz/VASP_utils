@@ -110,7 +110,7 @@ add_executable(poscar_c2d src/poscar_c2d.cpp)
 target_link_libraries(poscar_c2d PRIVATE vasp_core CLI11::CLI11)
 
 add_executable(poscar2ctrls src/poscar_2ctrls.cpp)
-target_link_libraries(poscar_2ctrls PRIVATE vasp_core CLI11::CLI11)
+target_link_libraries(poscar2ctrls PRIVATE vasp_core CLI11::CLI11)
 
 add_executable(poscar_supercell src/poscar_supercell.cpp)
 target_link_libraries(poscar_supercell PRIVATE vasp_core CLI11::CLI11)
@@ -128,10 +128,10 @@ add_executable(poscar_kpath src/poscar_kpath.cpp)
 target_link_libraries(poscar_kpath PRIVATE vasp_kpath CLI11::CLI11)
 
 add_executable(poscar2primitive src/poscar_2primitive.cpp)
-target_link_libraries(poscar_2primitive PRIVATE vasp_spglib CLI11::CLI11)
+target_link_libraries(poscar2primitive PRIVATE vasp_spglib CLI11::CLI11)
 
 add_executable(poscar2conventional src/poscar_2conventional.cpp)
-target_link_libraries(poscar_2conventional PRIVATE vasp_spglib CLI11::CLI11)
+target_link_libraries(poscar2conventional PRIVATE vasp_spglib CLI11::CLI11)
 
 # ===== surface slab utility =====
 add_executable(poscar_surface src/poscar_surface.cpp)
@@ -149,10 +149,10 @@ target_include_directories(cif_lib PUBLIC
 target_link_libraries(cif_lib PUBLIC vasp_core gemmi::headers)
 
 # ===== CIF utilities =====
-add_executable(poscar2cif src/poscar2cif.cpp)
+add_executable(poscar2cif src/poscar_2cif.cpp)
 target_link_libraries(poscar2cif PRIVATE cif_lib CLI11::CLI11)
 
-add_executable(cif2poscar src/cif2poscar.cpp)
+add_executable(cif2poscar src/cif_2poscar.cpp)
 target_link_libraries(cif2poscar PRIVATE cif_lib CLI11::CLI11)
 
 # ===== DOSCAR library =====
