@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(VaspUtils VERSION 0.2.1 LANGUAGES C CXX)
+project(VaspUtils VERSION 0.2.2 LANGUAGES C CXX)
 
 include(FetchContent)
 
@@ -18,6 +18,16 @@ set(CMAKE_CXX_EXTENSIONS ON)
 
 # Put all executables into bin/
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+
+#===== gemmi (header-only, CIF / crystallography) =====
+FetchContent_Declare(
+    gemmi
+    GIT_REPOSITORY https://github.com/project-gemmi/gemmi.git
+    GIT_TAG v0.6.7
+)
+set(GEMMI_BUILD_GEMMI_PROG OFF CACHE BOOL "" FORCE)
+set(GEMMI_INSTALL         OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(gemmi)
 
 # ===== spglib (vendored, static) =====
 FetchContent_Declare(
@@ -99,7 +109,7 @@ target_link_libraries(poscar_d2c PRIVATE vasp_core CLI11::CLI11)
 add_executable(poscar_c2d src/poscar_c2d.cpp)
 target_link_libraries(poscar_c2d PRIVATE vasp_core CLI11::CLI11)
 
-add_executable(poscar_2ctrls src/poscar_2ctrls.cpp)
+add_executable(poscar2ctrls src/poscar_2ctrls.cpp)
 target_link_libraries(poscar_2ctrls PRIVATE vasp_core CLI11::CLI11)
 
 add_executable(poscar_supercell src/poscar_supercell.cpp)
@@ -117,10 +127,10 @@ target_link_libraries(poscar_symmetry PRIVATE vasp_spglib CLI11::CLI11)
 add_executable(poscar_kpath src/poscar_kpath.cpp)
 target_link_libraries(poscar_kpath PRIVATE vasp_kpath CLI11::CLI11)
 
-add_executable(poscar_2primitive src/poscar_2primitive.cpp)
+add_executable(poscar2primitive src/poscar_2primitive.cpp)
 target_link_libraries(poscar_2primitive PRIVATE vasp_spglib CLI11::CLI11)
 
-add_executable(poscar_2conventional src/poscar_2conventional.cpp)
+add_executable(poscar2conventional src/poscar_2conventional.cpp)
 target_link_libraries(poscar_2conventional PRIVATE vasp_spglib CLI11::CLI11)
 
 # ===== surface slab utility =====
@@ -131,9 +141,32 @@ target_link_libraries(poscar_surface PRIVATE vasp_surface_lib vasp_spglib CLI11:
 add_executable(poscar_elastic_deform src/poscar_elastic_deform.cpp)
 target_link_libraries(poscar_elastic_deform PRIVATE vasp_elastic_lib vasp_spglib CLI11::CLI11)
 
+# ===== CIF library =====
+add_library(cif_lib src/cif_file.cpp)
+target_include_directories(cif_lib PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+)
+target_link_libraries(cif_lib PUBLIC vasp_core gemmi::headers)
+
+# ===== CIF utilities =====
+add_executable(poscar2cif src/poscar2cif.cpp)
+target_link_libraries(poscar2cif PRIVATE cif_lib CLI11::CLI11)
+
+add_executable(cif2poscar src/cif2poscar.cpp)
+target_link_libraries(cif2poscar PRIVATE cif_lib CLI11::CLI11)
+
+# ===== DOSCAR library =====
+add_library(doscar_lib src/doscar.cpp)
+target_include_directories(doscar_lib PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+)
+
 # ===== Postprocessing utilities (no spglib) =====
 add_executable(vasp_eigenval2bands src/vasp_eigenval2bands.cpp)
 target_link_libraries(vasp_eigenval2bands PRIVATE eigenval2bands CLI11::CLI11)
+
+add_executable(vasp_doscar2dos src/vasp_doscar2dos.cpp)
+target_link_libraries(vasp_doscar2dos PRIVATE doscar_lib CLI11::CLI11)
 
 add_executable(vasp_elastic_fit src/vasp_elastic_fit.cpp)
 target_link_libraries(vasp_elastic_fit PRIVATE vasp_elastic_lib CLI11::CLI11)

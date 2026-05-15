@@ -6,18 +6,23 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 - poscar_c2d - cartesian coordinates to fractional
 - poscar_symmetry - find symmetry of a cell
 - poscar_supercell - create supercell
-- poscar_2primitive - create primitive cell
-- poscar_2conventional - create conventional cell
-- poscar_2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
+- poscar2primitive - create primitive cell
+- poscar2conventional - create conventional cell
+- poscar2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
 - poscar_atom_displace - randomly displace atoms
 - poscar_kpath - for automatic generation of path in the Brillouin zone for band structure calculation
 - poscar_surface - generate surface slab from a bulk structure
 - poscar_elastic_deform - generate deformed structures to calculate elastic constants (both energy-strain and stress-strain approaches)
+- poscar2cif - convert POSCAR to CIF format
+- cif2poscar - convert CIF to POSCAR format (symmetry expansion via gemmi)
+
 
 ----Post-processing utilities:----
 
 - vasp_eigenval2bands - create data file for each path in 1BZ for simpler plotting
 - vasp_elastic_fit - calculating elastic tensor from the VASP calculation
+- vasp_doscar2dos - reorganise DOSCAR data into column files for easy plotting, with E_Fermi shift
+
 
 For now, the code is as it is; nothing is guaranteed.
 
@@ -70,9 +75,9 @@ Example:
 poscar_supercell --dim 2 2 3
 ```
 
-**poscar_2primitive** — Convert to primitive cell using spglib
+**poscar2primitive** — Convert to primitive cell using spglib
 ```
-poscar_2primitive [--input/-i <file>] [--output/-o <file>] [--symprec <float>] [--idealize]
+poscar2primitive [--input/-i <file>] [--output/-o <file>] [--symprec <float>] [--idealize]
 ```
 
 | Option | Default | Description |
@@ -82,9 +87,9 @@ poscar_2primitive [--input/-i <file>] [--output/-o <file>] [--symprec <float>] [
 | `--symprec` | `1e-5` | Symmetry tolerance |
 | `--idealize` | off | Idealize lattice parameters of the primitive cell |
 
-**poscar_2conventional** — Convert to conventional cell using spglib
+**poscar2conventional** — Convert to conventional cell using spglib
 ```
-poscar_2conventional [--input/-i <file>] [--output/-o <file>] [--symprec <float>] [--idealize]
+poscar2conventional [--input/-i <file>] [--output/-o <file>] [--symprec <float>] [--idealize]
 ```
 
 | Option | Default | Description |
@@ -94,9 +99,9 @@ poscar_2conventional [--input/-i <file>] [--output/-o <file>] [--symprec <float>
 | `--symprec` | `1e-5` | Symmetry tolerance |
 | `--idealize` | off | Idealize lattice parameters of the conventional cell |
 
-**poscar_2ctrls** — Convert POSCAR to ctrls.in format for ecalj/Questaal
+**poscar2ctrls** — Convert POSCAR to ctrls.in format for ecalj/Questaal
 ```
-poscar_2ctrls [--input/-i <file>] [--output/-o <file>]
+poscar2ctrls [--input/-i <file>] [--output/-o <file>]
 ```
 
 | Option | Default | Description |
@@ -285,6 +290,94 @@ vasp_elastic_fit --log elastic_run/elastic_deform.log --averages
 vasp_elastic_fit -l elastic_run/elastic_deform.log --source outcar --terminal
 ```
 
+**poscar2cif** — Convert a POSCAR file to CIF format
+```
+poscar2cif [--input/-i <file>] [--output/-o <file>]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `POSCAR` | Input POSCAR file |
+| `--output/-o` | `output.cif` | Output CIF file |
+
+Writes a P1 CIF (space group 1, all atoms listed explicitly). Cell parameters
+are computed from the lattice vectors; atom labels are generated as `Fe1`, `Fe2`,
+`O1`, … Occupancy is set to 1.0 for all sites.
+
+Example:
+```
+poscar2cif -i POSCAR_primitive -o structure.cif
+```
+
+**cif2poscar** — Convert a CIF file to POSCAR format
+```
+cif2poscar [--input/-i <file>] [--output/-o <file>] [--occ-threshold <float>]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `input.cif` | Input CIF file |
+| `--output/-o` | `POSCAR` | Output POSCAR file |
+| `--occ-threshold` | `0.5` | Minimum site occupancy to include (0–1) |
+
+Symmetry operations from the CIF are applied via gemmi to generate the full
+unit cell in P1. Sites with occupancy below `--occ-threshold` are discarded
+(useful for disordered structures). Lattice vectors follow the standard convention:
+**a** ∥ x, **b** in the xy-plane, **c** general. Coordinates are written as
+fractional (Direct).
+
+Example:
+```
+# Convert a database CIF (e.g. from ICSD or Materials Project)
+cif2poscar -i Fe2O3.cif -o POSCAR
+
+# Keep only fully-occupied sites
+cif2poscar -i disordered.cif --occ-threshold 0.99
+```
+
+**vasp_doscar2dos** — Reorganise DOSCAR into column data files for easy plotting
+```
+vasp_doscar2dos [--input/-i <file>] [--no-shift] [--total-only]
+                [--output-dir/-d <dir>] [--prefix/-p <prefix>]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `DOSCAR` | Input DOSCAR file |
+| `--no-shift` | off | Write absolute energies; do not subtract E_Fermi |
+| `--total-only` | off | Write only `tdos.dat`, skip per-atom partial DOS files |
+| `--output-dir/-d` | `.` | Directory to write output files into |
+| `--prefix/-p` | `` | Optional prefix prepended to all output filenames |
+
+By default the energy axis is shifted so that E_Fermi = 0. E_Fermi is read from
+the DOSCAR header (line 6). Spin polarisation and orbital decomposition level are
+detected automatically from the column count.
+
+Output files:
+- `tdos.dat` — total DOS (always written)
+- `pdos_atom_1.dat` … `pdos_atom_N.dat` — per-atom partial DOS (when present)
+
+Each file begins with a comment header:
+```
+# VASP DOSCAR: Total Density of States
+# NIONS = 4   NKPTS = 64   NEDOS = 301   nspin = 1
+# E_Fermi = 3.456000 eV (shifted to 0)
+# E_range = [-15.000000, 5.000000] eV
+#  energy[eV]  dos[states/eV]  idos[states]
+```
+
+Example:
+```
+# tDOS only, default shift
+vasp_doscar2dos
+
+# No energy shift, custom output directory
+vasp_doscar2dos --no-shift --output-dir dos_data/
+
+# Spin-polarised run, prefix output files
+vasp_doscar2dos -i DOSCAR --prefix fe_bcc_
+```
+
 ----Testing:----
 
 Tests are built alongside the project and use GoogleTest (fetched automatically by CMake).
@@ -317,6 +410,10 @@ Fetched automatically by CMake. Official: https://github.com/spglib/spglib
 Fetched automatically by CMake. Official: https://github.com/CLIUtils/CLI11
 
 **BLAS / LAPACK / LAPACKE** — linear algebra; must be installed on the system.
+
+**gemmi** — header-only crystallography library used for CIF parsing and symmetry expansion.
+Fetched automatically by CMake. License: MPL-2.0. Official: https://github.com/project-gemmi/gemmi
+
 
 ----Development Setup:----
 
