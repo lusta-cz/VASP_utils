@@ -3,6 +3,9 @@ project(VaspUtils VERSION 0.2.2 LANGUAGES C CXX)
 
 include(FetchContent)
 
+# Required so spglib's static lib can be linked into shared libraries
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # ===== CLI11 =====
 FetchContent_Declare(
     cli11
@@ -38,8 +41,11 @@ FetchContent_Declare(
 
 set(SPGLIB_WITH_Fortran OFF CACHE BOOL "" FORCE)
 set(SPGLIB_WITH_Python  OFF CACHE BOOL "" FORCE)
+set(SPGLIB_WITH_TESTS   OFF CACHE BOOL "" FORCE)
 
+set(BUILD_TESTING OFF)
 FetchContent_MakeAvailable(spglib)
+set(BUILD_TESTING ON)
 
 # ===== BLAS / LAPACK =====
 find_package(BLAS REQUIRED)
