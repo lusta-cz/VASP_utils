@@ -290,6 +290,11 @@ vasp_elastic_fit --log elastic_run/elastic_deform.log --averages
 vasp_elastic_fit -l elastic_run/elastic_deform.log --source outcar --terminal
 ```
 
+# Technical Documentation: `vasp_thermo` Module
+
+The `vasp_thermo` module is a high-performance post-processing command-line utility designed to extract macroscopic polycrystalline mechanical constants, directional sound velocity distributions, and quasi-harmonic thermal properties directly from raw $C_{ij}$ elastic tensor matrices calculated via Density Functional Theory (DFT) in VASP.
+
+
 **vasp_thermo** — Calculate mechanical, acoustic, and thermal properties from elastic constants
 ```
 vasp_thermo [--input/-i <file>] [--log/-l <file>] [--output/-o <file>]
@@ -300,11 +305,6 @@ vasp_thermo [--input/-i <file>] [--log/-l <file>] [--output/-o <file>]
 | `--input/-i` | `elastic_constants.dat` | Output file for the C_ij table |
 | `--log/-l` | `elastic_deform.log` | Manifest written by `poscar_elastic_deform` |
 | `--output/-o` | `thermal_properties.txt` | Output file for calculated properties |
-
-Reads the manifest produced by `poscar_elastic_deform` and the elastic tensor produced by `vasp_elastic_fit`, calculates mechanical, acoustic and thermal properties from elastic constants.
-# Technical Documentation: `vasp_thermo` Module
-
-The `vasp_thermo` module is a high-performance post-processing command-line utility designed to extract macroscopic polycrystalline mechanical constants, directional sound velocity distributions, and quasi-harmonic thermal properties directly from raw $C_{ij}$ elastic tensor matrices calculated via Density Functional Theory (DFT) in VASP.
 
 ---
 
