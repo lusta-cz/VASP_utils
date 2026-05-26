@@ -180,6 +180,7 @@ target_link_libraries(vasp_elastic_fit PRIVATE vasp_elastic_lib CLI11::CLI11)
 add_executable(vasp_thermo src/vasp_thermo.cpp)
 target_link_libraries(vasp_thermo PRIVATE vasp_elastic_lib CLI11::CLI11)
 
+
 # ===== Tests (GoogleTest) =====
 FetchContent_Declare(
     googletest
