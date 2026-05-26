@@ -456,22 +456,22 @@ Output files:
 
 Each file begins with a comment header:
 ```
-# VASP DOSCAR: Total Density of States
-# NIONS = 4   NKPTS = 64   NEDOS = 301   nspin = 1
-# E_Fermi = 3.456000 eV (shifted to 0)
-# E_range = [-15.000000, 5.000000] eV
-#  energy[eV]  dos[states/eV]  idos[states]
+- VASP DOSCAR: Total Density of States
+- NIONS = 4   NKPTS = 64   NEDOS = 301   nspin = 1
+- E_Fermi = 3.456000 eV (shifted to 0)
+- E_range = [-15.000000, 5.000000] eV
+-  energy[eV]  dos[states/eV]  idos[states]
 ```
 
 Example:
 ```
-# tDOS only, default shift
+- tDOS only, default shift
 vasp_doscar2dos
 
-# No energy shift, custom output directory
+- No energy shift, custom output directory
 vasp_doscar2dos --no-shift --output-dir dos_data/
 
-# Spin-polarised run, prefix output files
+- Spin-polarised run, prefix output files
 vasp_doscar2dos -i DOSCAR --prefix fe_bcc_
 ```
 
