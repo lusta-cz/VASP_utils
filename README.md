@@ -302,6 +302,89 @@ vasp_thermo [--input/-i <file>] [--log/-l <file>] [--output/-o <file>]
 | `--output/-o` | `thermal_properties.txt` | Output file for calculated properties |
 
 Reads the manifest produced by `poscar_elastic_deform` and the elastic tensor produced by `vasp_elastic_fit`, calculates mechanical, acoustic and thermal properties from elastic constants.
+# Technical Documentation: `vasp_thermo` Module
+
+The `vasp_thermo` module is a high-performance post-processing command-line utility designed to extract macroscopic polycrystalline mechanical constants, directional sound velocity distributions, and quasi-harmonic thermal properties directly from raw $C_{ij}$ elastic tensor matrices calculated via Density Functional Theory (DFT) in VASP.
+
+---
+
+## 1. Theoretical Framework & Equations
+
+### 1.1 Polycrystalline Elastic Moduli (Voigt-Reuss-Hill)
+For an aggregate of randomly oriented single crystals, the effective bulk modulus ($K$) and shear modulus ($G$) are bounded by the Voigt (upper bound, uniform strain assumption) and Reuss (lower bound, uniform stress assumption) schemes. 
+
+* **Voigt Bounds ($K_V, G_V$):** Evaluated directly from the $C_{ij}$ Voigt matrix components.
+  $$K_V = \frac{1}{9}\left[(C_{11} + C_{22} + C_{33}) + 2(C_{12} + C_{13} + C_{23})\right]$$
+  $$G_V = \frac{1}{15}\left[(C_{11} + C_{22} + C_{33}) - (C_{12} + C_{13} + C_{23}) + 3(C_{44} + C_{55} + C_{66})\right]$$
+
+* **Reuss Bounds ($K_R, G_R$):** Evaluated from the elastic compliance matrix $S = C^{-1}$.
+  $$\frac{1}{K_R} = (S_{11} + S_{22} + S_{33}) + 2(S_{12} + S_{13} + S_{23})$$
+  $$\frac{1}{G_R} = \frac{1}{15}\left[4(S_{11} + S_{22} + S_{33}) - 4(S_{12} + S_{13} + S_{23}) + 3(S_{44} + S_{55} + S_{66})\right]$$
+
+* **Hill Averages ($K_H, G_H$):** Taken as the empirical arithmetic mean of the Voigt and Reuss limits.
+  $$K_H = \frac{K_V + K_R}{2}, \quad G_H = \frac{G_V + G_R}{2}$$
+
+From the Hill moduli, Young's modulus ($E_H$) and Poisson's ratio ($\nu_H$) are determined:
+$$E_H = \frac{9 K_H G_H}{3 K_H + G_H}, \quad \nu_H = \frac{3 K_H - 2 G_H}{2(3 K_H + G_H)}$$
+
+### 1.2 Wave Velocity Architectures
+
+The engine handles sound speed mapping through two independent paradigms:
+
+1. **Isotropic Estimation (Anderson Method):** Uses macroscopic Hill bounds to define global longitudinal ($v_l$), transverse ($v_t$), and average ($v_m$) wave channels:
+   $$v_l = \sqrt{\frac{K_H + \frac{4}{3}G_H}{\rho}}, \quad v_t = \sqrt{\frac{G_H}{\rho}}, \quad v_m = \left[\frac{1}{3}\left(\frac{1}{v_l^3} + \frac{2}{v_t^3}\right)\right]^{-1/3}$$
+   *(where $\rho$ represents crystallographic mass density)*
+
+2. **Anisotropic Integration (Christoffel Solver):** Resolves wave velocities rigorously across an integrated spherical propagation coordinate grid ($\theta, \phi$) using the Christoffel relation:
+   $$\det\left| \Gamma_{ik}(\vec{n}) - \rho v^2 \delta_{ik} \right| = 0$$
+   where $\vec{n}$ is the propagation unit vector and $\Gamma_{ik} = C_{ijkl}n_j n_l$. The three eigenvalues at each grid point represent two slow/transverse acoustic modes ($v_t$) and one fast/longitudinal mode ($v_l$). The true acoustic mean velocity $v_m$ is mapped via directional angular integration:
+   $$\frac{1}{v_m^3} = \frac{1}{4\pi}\int_0^{2\pi}\int_0^\pi \left( \sum_{i=1}^3 \frac{1}{v_i^3(\theta,\phi)} \right) \sin\theta \, d\theta \, d\phi$$
+
+### 1.3 Quasi-Harmonic Thermal Quantities
+
+* **Debye Temperature ($\theta_D$):** Derived from the mean acoustic velocity ($v_m$), reflecting the maximum vibration frequency limit of the lattice:
+  $$\theta_D = \frac{h}{k_B} \left( \frac{3 n}{4\pi V} \right)^{-1/3} v_m$$
+  *(where $n$ is total atoms per cell, $V$ is cell volume, $h$ is Planck's constant, $k_B$ is Boltzmann's constant)*
+* **Acoustic Grüneisen Parameter ($\gamma$):** Characterizes the anharmonicity of the crystal lattice derived from Poisson's ratio:
+  $$\gamma = \frac{3}{2}\left( \frac{1 + \nu_H}{2 - 3\nu_H} \right)$$
+* **Minimum Thermal Conductivity ($\kappa_{min}$):**
+  * **Clarke Model:** Dependent on Young's modulus: $\kappa_{min} = 0.87 k_B \left(\frac{n}{V}\right)^{2/3} \sqrt{\frac{E}{\rho}}$
+  * **Cahill Model:** Evaluates individual atomic site heat transfer using acoustic spectrum modes: $\kappa_{min} = \frac{1}{2} k_B \left(\frac{n}{V}\right)^{2/3} (v_l + 2v_t)$
+* **Volumetric Thermal Expansion ($\alpha_V$):**
+  $$\alpha_V = \frac{\gamma \cdot C_V}{V \cdot K_H} \approx \frac{\gamma \cdot (3 n k_B)}{V \cdot K_H}$$
+
+---
+
+## 2. Input Prerequisites
+
+The `vasp_thermo` pipeline expects two core data artifacts:
+
+1. **Elastic Tensor Table (`elastic_constants.dat`):**
+   A structured flat file containing the symmetrized $C_{ij}$ array configuration outputted by VASP calculations (`IBRION=6`). Row indicators must match standard Voigt rows:
+   ```text
+   C_i1   142.30   55.10   52.40    0.00    0.00    0.00
+   C_i2    55.10  142.30   52.40    0.00    0.00    0.00
+   C_i3    52.40   52.40  130.80    0.00    0.00    0.00
+   C_i4     0.00    0.00    0.00   45.20    0.00    0.00
+   C_i5     0.00    0.00    0.00    0.00   45.20    0.00
+   C_i6     0.00    0.00    0.00    0.00    0.00   48.10
+
+2. **Tracking Manifest Log (`elastic_deform.log`):**
+  A structured key-value manifest file tracking the equilibrium unit cell properties. These properties are required by the internal framework to determine the precise crystallographic mass density ($\rho$) and atomic volume density parameters:
+
+* **`VOLUME`**: The equilibrium unit cell volume expressed in cubic Angstroms ($\text{Å}^3$).
+* **`TOTAL_ATOMS`**: The total number of ions contained within the calculated supercell.
+* **`ELEMENTS`**: A space-separated ordered sequence tracking the active chemical symbols (e.g., `Fe O` or `Al Ni`).
+* **`NUM_ATOMS`**: A space-separated sequence tracking the integer atomic counts corresponding exactly to the order defined in `ELEMENTS`.
+
+#### Sample `elastic_deform.log` Format:
+```text
+VOLUME=45.2341
+TOTAL_ATOMS=4
+ELEMENTS=Al Ni
+NUM_ATOMS=2 2
+REFERENCE_DIR=./relax
+N_MODES=6
 
 
 **poscar2cif** — Convert a POSCAR file to CIF format
