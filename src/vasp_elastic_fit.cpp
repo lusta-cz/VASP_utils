@@ -211,17 +211,6 @@ struct StabilityResult {
     std::vector<double> eigenvalues;  // ascending eigenvalues of C (same units as C)
 };
 
-// ── VRH result ────────────────────────────────────────────────────────────────
-
-struct VRHResult {
-    double K_V, G_V;   // Voigt bulk and shear moduli
-    double K_R, G_R;   // Reuss bulk and shear moduli
-    double K_H, G_H;   // Hill (arithmetic mean) bulk and shear moduli
-    double E_H, nu_H;  // Hill Young's modulus and Poisson ratio
-    double A_U;        // Universal anisotropy: 5*(G_V/G_R) + (K_V/K_R) - 6
-    double pugh;       // Pugh ratio K_H/G_H (>1.75 → ductile tendency)
-};
-
 // ── Linear algebra (LAPACKE) ──────────────────────────────────────────────────
 
 // Invert a 6×6 matrix by solving M·X = I via LAPACKE_dgesv (no dgetri needed).
@@ -530,36 +519,6 @@ static std::optional<Cmat> fitEnergyStrain(const std::vector<ModeData>& mode_dat
     return C;
 }
 
-// ── VRH polycrystalline averages ──────────────────────────────────────────────
-
-// All inputs and outputs in the same units as C (GPa when called with C_GPa).
-static std::optional<VRHResult> computeVRH(const Cmat& C) {
-    const double K_V = (1.0 / 9.0) * (C[0][0] + C[1][1] + C[2][2] + 2.0 * (C[0][1] + C[0][2] + C[1][2]));
-    const double G_V = (1.0 / 15.0) * (C[0][0] + C[1][1] + C[2][2] - (C[0][1] + C[0][2] + C[1][2]) +
-                                       3.0 * (C[3][3] + C[4][4] + C[5][5]));
-
-    auto S_opt = invert6(C);
-    if (!S_opt)
-        return std::nullopt;
-    const Cmat& S = *S_opt;
-
-    const double K_R = 1.0 / (S[0][0] + S[1][1] + S[2][2] + 2.0 * (S[0][1] + S[0][2] + S[1][2]));
-    const double G_R = 15.0 / (4.0 * (S[0][0] + S[1][1] + S[2][2]) - 4.0 * (S[0][1] + S[0][2] + S[1][2]) +
-                               3.0 * (S[3][3] + S[4][4] + S[5][5]));
-
-    const double K_H = 0.5 * (K_V + K_R);
-    const double G_H = 0.5 * (G_V + G_R);
-    const double E_H = 9.0 * K_H * G_H / (3.0 * K_H + G_H);
-    const double nu_H = (3.0 * K_H - 2.0 * G_H) / (2.0 * (3.0 * K_H + G_H));
-
-    // Universal anisotropy index (Ranganathan & Ostoja-Starzewski, PRL 2008)
-    const double A_U =
-        (G_R > 1e-10 && K_R > 1e-10) ? 5.0 * (G_V / G_R) + (K_V / K_R) - 6.0 : std::numeric_limits<double>::quiet_NaN();
-    const double pugh = (G_H > 1e-10) ? K_H / G_H : std::numeric_limits<double>::quiet_NaN();
-
-    return VRHResult{K_V, G_V, K_R, G_R, K_H, G_H, E_H, nu_H, A_U, pugh};
-}
-
 // ── Born mechanical stability ─────────────────────────────────────────────────
 
 // Check Born stability: all eigenvalues of the 6×6 C matrix must be positive.
@@ -585,8 +544,7 @@ static StabilityResult checkBornStability(const Cmat& C_GPa) {
 
 // ── Output ────────────────────────────────────────────────────────────────────
 
-static void writeCij(std::ostream& out, const Cmat& C, const ElasticDeformLog& log, const StabilityResult& stab,
-                     const std::optional<VRHResult>& vrh) {
+static void writeCij(std::ostream& out, const Cmat& C, const ElasticDeformLog& log, const StabilityResult& stab) {
     out << "# Elastic constants C_ij (GPa)\n";
     out << "# Method: " << log.method << "-strain\n";
     out << "# Crystal: " << crystalSystemName(log.crystal_system) << " (" << log.space_group_symbol << " #"
@@ -609,21 +567,6 @@ static void writeCij(std::ostream& out, const Cmat& C, const ElasticDeformLog& l
     for (double ev : stab.eigenvalues)
         out << "  " << std::setw(9) << ev;
     out << "\n";
-
-    if (vrh) {
-        out << "#\n# Voigt-Reuss-Hill polycrystalline averages (GPa)\n";
-        out << std::fixed << std::setprecision(2);
-        out << "#  K_Voigt = " << std::setw(8) << vrh->K_V << "   G_Voigt = " << std::setw(8) << vrh->G_V << "\n";
-        out << "#  K_Reuss = " << std::setw(8) << vrh->K_R << "   G_Reuss = " << std::setw(8) << vrh->G_R << "\n";
-        out << "#  K_Hill  = " << std::setw(8) << vrh->K_H << "   G_Hill  = " << std::setw(8) << vrh->G_H << "\n";
-        out << "#  E_Hill  = " << std::setw(8) << vrh->E_H << "   nu_Hill = " << std::setw(8) << vrh->nu_H << "\n";
-        if (!std::isnan(vrh->A_U))
-            out << "#  Univ. anisotropy A_U   = " << std::fixed << std::setprecision(4) << vrh->A_U
-                << "  (0 = isotropic)\n";
-        if (!std::isnan(vrh->pugh))
-            out << "#  Pugh ratio K_H/G_H     = " << std::fixed << std::setprecision(3) << vrh->pugh
-                << "  (>1.75 → ductile tendency)\n";
-    }
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -635,7 +578,6 @@ int main(int argc, char* argv[]) {
     std::string dataSource;
     std::string outputFile{"elastic_constants.dat"};
     bool terminal_only{false};
-    bool averages{false};
 
     app.add_option("--log,-l", logFile, "Path to elastic_deform.log manifest")
         ->capture_default_str()
@@ -646,7 +588,6 @@ int main(int argc, char* argv[]) {
         ->check(CLI::IsMember({"oszicar", "outcar", "vasprun"}));
     app.add_option("--output,-o", outputFile, "Output file for C_ij table")->capture_default_str();
     app.add_flag("--terminal,-t", terminal_only, "Print C_ij to terminal only; do not write output file");
-    app.add_flag("--averages,-a", averages, "Compute and print Voigt-Reuss-Hill polycrystalline averages");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -838,14 +779,6 @@ int main(int argc, char* argv[]) {
     const StabilityResult stab = checkBornStability(C_GPa);
     std::cout << "\nBorn stability: " << (stab.stable ? "STABLE" : "** UNSTABLE **") << "\n";
 
-    // ── Optional VRH averages ────────────────────────────────────────────────
-    std::optional<VRHResult> vrh;
-    if (averages) {
-        vrh = computeVRH(C_GPa);
-        if (!vrh)
-            std::cerr << "Warning: C_ij matrix is singular; VRH averages cannot be computed.\n";
-    }
-
     // ── Write output ─────────────────────────────────────────────────────────
     if (!terminal_only) {
         std::ofstream fout(outputFile);
@@ -853,12 +786,12 @@ int main(int argc, char* argv[]) {
             std::cerr << "Error: cannot open output file: " << outputFile << "\n";
             return 1;
         }
-        writeCij(fout, C_GPa, log, stab, vrh);
+        writeCij(fout, C_GPa, log, stab);
         std::cout << "Written: " << outputFile << "\n";
     }
 
     // Always echo the table to terminal
-    writeCij(std::cout, C_GPa, log, stab, vrh);
+    writeCij(std::cout, C_GPa, log, stab);
 
     return 0;
 }

@@ -307,6 +307,20 @@ bool writeElasticLog(const std::string& path, const ElasticDeformLog& log) {
     f << "SPACE_GROUP_SYMBOL=" << log.space_group_symbol << "\n";
     f << "POINT_GROUP=" << log.point_group << "\n";
     f << "N_INDEPENDENT=" << log.n_independent << "\n";
+
+    f << "ELEMENTS=";
+    for (size_t i = 0; i < log.elems.size(); ++i) {
+        f << log.elems[i] << (i + 1 == log.elems.size() ? "" : " ");
+    }
+    f << "\n";
+
+    f << "NUMBER_OF_ATOMS_PER_ELEMENT=";
+    for (size_t i = 0; i < log.num_atms.size(); ++i) {
+        f << log.num_atms[i] << (i + 1 == log.num_atms.size() ? "" : " ");
+    }
+    f << "\n";
+
+    f << "TOTAL_NUMBER_OF_ATOMS=" << log.total_atms << "\n";
     f << "VOLUME=" << log.volume << "\n";
     f << "N_MODES=" << static_cast<int>(log.modes.size()) << "\n";
     f << "REFERENCE_DIR=" << log.reference_dir << "\n";
@@ -375,6 +389,22 @@ std::optional<ElasticDeformLog> readElasticLog(const std::string& path) {
             log.point_group = val;
         else if (key == "N_INDEPENDENT")
             log.n_independent = std::stoi(val);
+        else if (key == "ELEMENTS") {
+            std::istringstream ss(val);
+            std::string element_symbol;
+            log.elems.clear();
+            while (ss >> element_symbol) {
+                log.elems.push_back(element_symbol);
+            }
+        } else if (key == "NUMBER_OF_ATOMS_PER_ELEMENT") {
+            std::istringstream ss(val);
+            int count;
+            log.num_atms.clear();
+            while (ss >> count) {
+                log.num_atms.push_back(count);
+            }
+        } else if (key == "TOTAL_NUMBER_OF_ATOMS")
+            log.total_atms = std::stoi(val);
         else if (key == "VOLUME")
             log.volume = std::stod(val);
         else if (key == "REFERENCE_DIR")

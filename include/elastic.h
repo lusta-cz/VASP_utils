@@ -56,6 +56,9 @@ struct ElasticDeformLog {
     std::string space_group_symbol;
     std::string point_group;
     int n_independent{21};
+    std::vector<std::string> elems;  ///< Element symbols in order.
+    std::vector<int> num_atms;       ///< Number of atoms per element, same order as @c elements.
+    int total_atms{0};
     double volume{0.0};
     std::string reference_dir;  ///< Relative path to the reference (zero-strain) directory.
     std::vector<ElasticStrainMode> modes;
