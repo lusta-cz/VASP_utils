@@ -278,7 +278,6 @@ vasp_elastic_fit [--log/-l <file>] [--source/-s <oszicar|outcar|vasprun>]
 | `--source/-s` | `oszicar` (energy) / `outcar` (stress) | Data source: `oszicar`, `outcar`, or `vasprun` |
 | `--output/-o` | `elastic_constants.dat` | Output file for the C_ij table |
 | `--terminal/-t` | off | Print C_ij to terminal only; do not write an output file |
-| `--averages/-a` | off | Compute and print Voigt-Reuss-Hill polycrystalline averages |
 
 Reads the manifest produced by `poscar_elastic_deform`, collects energies or stresses from each deformed-structure directory, and fits the full elastic tensor using least squares.
 
@@ -290,6 +289,20 @@ vasp_elastic_fit --log elastic_run/elastic_deform.log --averages
 # Stress-strain fit, read from OUTCAR, terminal output only
 vasp_elastic_fit -l elastic_run/elastic_deform.log --source outcar --terminal
 ```
+
+**vasp_thermo** — Calculate mechanical, acoustic, and thermal properties from elastic constants
+```
+vasp_thermo [--input/-i <file>] [--log/-l <file>] [--output/-o <file>]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `--input/-i` | `elastic_constants.dat` | Output file for the C_ij table |
+| `--log/-l` | `elastic_deform.log` | Manifest written by `poscar_elastic_deform` |
+| `--output/-o` | `thermal_properties.txt` | Output file for calculated properties |
+
+Reads the manifest produced by `poscar_elastic_deform` and the elastic tensor produced by `vasp_elastic_fit`, calculates mechanical, acoustic and thermal properties from elastic constants.
+
 
 **poscar2cif** — Convert a POSCAR file to CIF format
 ```
