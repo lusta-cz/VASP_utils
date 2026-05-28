@@ -2,20 +2,28 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 
 ----Pre-processing utilities:----
 
+--Conversions:--
+
 - poscar_d2c - fractional coordinates to cartesian
 - poscar_c2d - cartesian coordinates to fractional
-- poscar_symmetry - find symmetry of a cell
-- poscar_supercell - create supercell
 - poscar2primitive - create primitive cell
 - poscar2conventional - create conventional cell
 - poscar2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
-- poscar_atom_displace - randomly displace atoms
-- poscar_convergence_test - automatically builds structured directories for systematically testing plane-wave cutoffs and k-point spacings
-- poscar_kpath - for automatic generation of path in the Brillouin zone for band structure calculation
-- poscar_surface - generate surface slab from a bulk structure
-- poscar_elastic_deform - generate deformed structures to calculate elastic constants (both energy-strain and stress-strain approaches)
 - poscar2cif - convert POSCAR to CIF format
 - cif2poscar - convert CIF to POSCAR format (symmetry expansion via gemmi)
+
+--Structure generation:--
+
+- poscar_symmetry - find symmetry of a cell
+- poscar_supercell - create supercell
+- poscar_atom_displace - randomly displace atoms
+- poscar_surface - generate surface slab from a bulk structure
+- poscar_elastic_deform - generate deformed structures to calculate elastic constants (both energy-strain and stress-strain approaches)
+
+--Setup VASP calculation:
+
+- poscar_convergence_test - automatically builds structured directories for systematically testing plane-wave cutoffs and k-point spacings
+- poscar_kpath - for automatic generation of path in the Brillouin zone for band structure calculation
 
 
 ----Post-processing utilities:----
