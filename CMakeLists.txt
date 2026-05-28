@@ -122,7 +122,7 @@ add_executable(poscar_supercell src/poscar_supercell.cpp)
 target_link_libraries(poscar_supercell PRIVATE vasp_core CLI11::CLI11)
 
 add_executable(poscar_convergence_test src/poscar_convergence_test.cpp)
-target_link_libraries(poscar_convergence_test PRIVATE CLI11::CLI11)
+target_link_libraries(poscar_convergence_test PRIVATE vasp_core CLI11::CLI11)
 
 # ===== k-path helper library =====
 add_library(vasp_kpath src/kpath.cpp)
@@ -184,10 +184,10 @@ add_executable(vasp_thermo src/vasp_thermo.cpp)
 target_link_libraries(vasp_thermo PRIVATE vasp_elastic_lib CLI11::CLI11)
 
 add_executable(vasp_magnetic src/vasp_magnetic.cpp)
-target_link_libraries(vasp_magnetic PRIVATE CLI11::CLI11)
+target_link_libraries(vasp_magnetic PRIVATE vasp_core CLI11::CLI11)
 
 add_executable(vasp_convergence_test src/vasp_convergence_test.cpp)
-target_link_libraries(vasp_convergence_test PRIVATE CLI11::CLI11)
+target_link_libraries(vasp_convergence_test PRIVATE vasp_core CLI11::CLI11)
 
 
 # ===== Tests (GoogleTest) =====
