@@ -314,7 +314,7 @@ vasp_thermo [--input/-i <file>] [--log/-l <file>] [--output/-o <file>]
 ## 1. Theoretical Framework & Equations
 
 ### 1.1 Polycrystalline Elastic Moduli (Voigt-Reuss-Hill)
-For an aggregate of randomly oriented single crystals, the effective bulk modulus ($K$) and shear modulus ($G$) are bounded by the Voigt (upper bound, uniform strain assumption) and Reuss (lower bound, uniform stress assumption) schemes. 
+For an aggregate of randomly oriented single crystals, the effective bulk modulus ($K$) and shear modulus ($G$) are bounded by the Voigt (upper bound, uniform strain assumption) and Reuss (lower bound, uniform stress assumption) schemes.
 
 * **Voigt Bounds ($K_V, G_V$):** Evaluated directly from the $C_{ij}$ Voigt matrix components.
   $$K_V = \frac{1}{9}\left[(C_{11} + C_{22} + C_{33}) + 2(C_{12} + C_{13} + C_{23})\right]$$

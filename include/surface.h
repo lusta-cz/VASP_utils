@@ -9,6 +9,7 @@ struct SlabOptions {
     int n_frozen{0};       ///< Number of bottom layers frozen (F F F).
     double vacuum{15.0};   ///< Vacuum thickness to add above the slab (Å).
     double symprec{1e-5};  ///< Symmetry tolerance for primitive-cell conversion.
+    bool center{false};
 };
 
 /**

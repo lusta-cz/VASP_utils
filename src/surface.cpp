@@ -173,9 +173,12 @@ IVec3 findInterlayerVector(int h, int k, int l, int g, const Vec3& nhat, const d
 }
 
 double wrap01(double v) {
-    v = v - std::floor(v);  // reliable for negative values
-    if (v >= 1.0 - 1e-9)
-        v = 0.0;  // snap near-1 to 0 (avoids boundary dedup failure)
+    while (v >= 1.0)
+        v -= 1.0;
+    while (v < 0.0)
+        v += 1.0;
+    if (v >= 1.0 - 1e-7)
+        v = 0.0;  // Safe threshold snap
     return v;
 }
 
@@ -459,7 +462,17 @@ POSCAR buildSlab(const POSCAR& bulk_in, const SlabOptions& opts) {
         Atom a;
         a.x = wrap01(at.c1);
         a.y = wrap01(at.c2);
-        a.z = at.z_p / C_mag;
+
+        // Calculate base fractional z position
+        double z_frac = at.z_p / C_mag;
+
+        // Apply centering shift if requested
+        if (opts.center) {
+            double fractional_shift = (opts.vacuum / 2.0) / C_mag;
+            z_frac = wrap01(z_frac + fractional_shift);
+        }
+
+        a.z = z_frac;
 
         bool frozen = (opts.n_frozen > 0) && (layer_id[i] < opts.n_frozen);
         a.selective_flags = {!frozen, !frozen, !frozen};

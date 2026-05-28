@@ -19,6 +19,7 @@ int main(int argc, char* argv[]) {
     double vacuum{15.0};
     bool use_primitive{false};
     double symprec{1e-5};
+    bool center_slab{false};
 
     app.add_option("--input,-i", inputFile, "Input bulk POSCAR file")->capture_default_str()->check(CLI::ExistingFile);
     app.add_option("--output,-o", outputFile, "Output POSCAR file (default: POSCAR_surface_hkl)");
@@ -34,6 +35,7 @@ int main(int argc, char* argv[]) {
     app.add_option("--symprec", symprec, "Symmetry tolerance for primitive-cell conversion")
         ->capture_default_str()
         ->check(CLI::PositiveNumber);
+    app.add_flag("--center,-c", center_slab, "Center the slab with equal vacuum layers on both sides");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -74,6 +76,7 @@ int main(int argc, char* argv[]) {
     opts.n_frozen = n_frozen;
     opts.vacuum = vacuum;
     opts.symprec = symprec;
+    opts.center = center_slab;
 
     POSCAR slab = buildSlab(poscar, opts);
     if (slab.total_atoms == 0) {
