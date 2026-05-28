@@ -2,7 +2,7 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 
 ----Pre-processing utilities:----
 
---Conversions:--
+--Structure conversions:--
 
 - poscar_d2c - fractional coordinates to cartesian
 - poscar_c2d - cartesian coordinates to fractional
@@ -20,7 +20,7 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 - poscar_surface - generate surface slab from a bulk structure
 - poscar_elastic_deform - generate deformed structures to calculate elastic constants (both energy-strain and stress-strain approaches)
 
---Setup VASP calculation:
+--Setup VASP calculation:--
 
 - poscar_convergence_test - automatically builds structured directories for systematically testing plane-wave cutoffs and k-point spacings
 - poscar_kpath - for automatic generation of path in the Brillouin zone for band structure calculation
