@@ -10,6 +10,7 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 - poscar2conventional - create conventional cell
 - poscar2ctrls - create ctrls file for ecalj/Questaal package from POSCAR
 - poscar_atom_displace - randomly displace atoms
+- poscar_convergence_test - automatically builds structured directories for systematically testing plane-wave cutoffs and k-point spacings
 - poscar_kpath - for automatic generation of path in the Brillouin zone for band structure calculation
 - poscar_surface - generate surface slab from a bulk structure
 - poscar_elastic_deform - generate deformed structures to calculate elastic constants (both energy-strain and stress-strain approaches)
@@ -23,6 +24,8 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 - vasp_elastic_fit - calculating elastic tensor from the VASP calculation
 - vasp_thermo - calculating mechanical, acustic and thermal properties from elastic tensor (vasp_elastic_fit)
 - vasp_doscar2dos - reorganise DOSCAR data into column files for easy plotting, with E_Fermi shift
+- vasp_convergence_test - gathers final free energies and automatic k-point dimensions from test folders into ready-to-plot data files
+- vasp_magnetic - parses element-wise magnetic components and total magnetic moments from calculation outputs
 
 
 For now, the code is as it is; nothing is guaranteed.
