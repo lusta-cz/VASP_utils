@@ -201,6 +201,7 @@ poscar_surface [--input/-i <file>] [--output/-o <file>] --miller/-m <h> <k> <l>
 | `--vacuum/-v` | `15.0` | Vacuum thickness in Angstroms |
 | `--primitive/-p` | off | Convert input to primitive cell before building the slab |
 | `--symprec` | `1e-5` | Symmetry tolerance for primitive-cell conversion |
+| `--center/-c` | `false` | Center the slab with equal vacuum layers on both sides |
 
 Examples:
 ```
