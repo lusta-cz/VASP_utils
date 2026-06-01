@@ -1,3 +1,5 @@
+# Highly efficient C++ CLI utilities for the pre- and post-processing of VASP calculations.
+
 Still under development. Currently, these utilities for POSCAR file manipulation are implemented:
 
 ----Pre-processing utilities:----
