@@ -24,10 +24,12 @@ int main(int argc, char** argv) {
     double manual_fermi{0.0};
     std::string fermiSource{"doscar"};
     std::string element{};
+    int atom_required{-1};
+    bool element_option = true;
 
     // CLI Options
-    app.add_option("-i,--input", eigen_file, "Input EIGENVAL file")->capture_default_str()->check(CLI::ExistingFile);
-    app.add_option("-k,--kpoints", kpoints_file, "KPOINTS file used for the band structure calculation")
+    app.add_option("--input,-i", eigen_file, "Input EIGENVAL file")->capture_default_str()->check(CLI::ExistingFile);
+    app.add_option("--kpoints,-k", kpoints_file, "KPOINTS file used for the band structure calculation")
         ->capture_default_str()
         ->check(CLI::ExistingFile);
     app.add_option("--fermi-source", fermiSource, "Fermi level source: doscar (default) | outcar | manual | none")
@@ -44,7 +46,13 @@ int main(int argc, char** argv) {
     app.add_option("--poscar", poscar_file, "POSCAR/CONTCAR file used for the band structure calculation")
         ->capture_default_str()
         ->check(CLI::ExistingFile);
-    app.add_option("-e,--element", element, "Target element label (e.g., Ni, Fe, O)")->required();
+    app.add_option("--element,-e", element, "Target element label (e.g., Ni, Fe, O)")->required();
+    app.add_option(
+           "--atom,-a", atom_required,
+           "Specify index of atom to export the flat band projections; if used, '--element,-e' option is blocked")
+        ->capture_default_str()
+        ->check(CLI::NonNegativeNumber)
+        ->each([&element_option](const std::string&) { element_option = false; });
     auto* fermi_opt = app.add_option("-e,--fermi", manual_fermi, "Fermi level in eV (used with --fermi-source=manual)")
                           ->capture_default_str();
 
@@ -122,22 +130,33 @@ int main(int argc, char** argv) {
 
     int global_atom_offset{0};
     int num_element_wanted{0};
-    for (int i = 0; i < static_cast<int>(structure.elements.size()); i++) {
-        if (element == structure.elements[i]) {
-            num_element_wanted = structure.num_atoms[i];
-            break;
+
+    if (element_option) {
+        for (int i = 0; i < static_cast<int>(structure.elements.size()); i++) {
+            if (element == structure.elements[i]) {
+                num_element_wanted = structure.num_atoms[i];
+                break;
+            }
+            global_atom_offset += structure.num_atoms[i];
         }
-        global_atom_offset += structure.num_atoms[i];
+
+        if (num_element_wanted == 0) {
+            std::cerr << "Error: Required element '" << element << "' not found in the structure file '" << poscar_file
+                      << "'!\n";
+            return 1;
+        }
+
+        std::cout << "Info: Identified " << num_element_wanted << " atom(s) matching element '" << element << "'.\n";
+    } else {
+        if (atom_required > structure.total_atoms) {
+            std::cerr << "Error: Required atom index '" << atom_required
+                      << "' is higher than number of atoms in the structure file '" << poscar_file << "'!\n";
+            return 1;
+        }
+        global_atom_offset = atom_required;
+        num_element_wanted = 1;
+        element = "atom_index_" + std::to_string(atom_required);
     }
-
-    if (num_element_wanted == 0) {
-        std::cerr << "Error: Required element '" << element << "' not found in the structure file '" << poscar_file
-                  << "'!\n";
-        return 1;
-    }
-
-    std::cout << "Info: Identified " << num_element_wanted << " atom(s) matching element '" << element << "'.\n";
-
     // Deduce path segments
     int num_paths = data.total_kpoints / kpoints_between;
 
@@ -185,7 +204,6 @@ int main(int argc, char** argv) {
             }
             out << "\n";
         }
-
         std::cout << "Success: Generated file '" << out_name << "' for element '" << element << "' number "
                   << (i_num_files + 1) << ".\n";
     }
