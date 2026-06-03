@@ -175,7 +175,7 @@ add_executable(vasp_eigenval2bands src/vasp_eigenval2bands.cpp)
 target_link_libraries(vasp_eigenval2bands PRIVATE eigenval2bands CLI11::CLI11)
 
 add_executable(vasp_fatbands src/vasp_fatbands.cpp)
-target_link_libraries(vasp_fatbands PRIVATE eigenval2bands CLI11::CLI11)
+target_link_libraries(vasp_fatbands PRIVATE vasp_core eigenval2bands CLI11::CLI11)
 
 add_executable(vasp_doscar2dos src/vasp_doscar2dos.cpp)
 target_link_libraries(vasp_doscar2dos PRIVATE doscar_lib CLI11::CLI11)
