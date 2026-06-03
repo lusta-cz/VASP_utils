@@ -31,6 +31,7 @@ Still under development. Currently, these utilities for POSCAR file manipulation
 ----Post-processing utilities:----
 
 - vasp_eigenval2bands - create data file for each path in 1BZ for simpler plotting
+- vasp_fatbands - create data file for band dispersion plot with projections to required element atomic orbitals in 1BZ for simpler plotting
 - vasp_elastic_fit - calculating elastic tensor from the VASP calculation
 - vasp_thermo - calculating mechanical, acustic and thermal properties from elastic tensor (vasp_elastic_fit)
 - vasp_doscar2dos - reorganise DOSCAR data into column files for easy plotting, with E_Fermi shift

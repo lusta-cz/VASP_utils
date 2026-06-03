@@ -31,8 +31,9 @@ int main(int argc, char** argv) {
         ->check(CLI::IsMember({"doscar", "outcar", "manual", "none"}));
     app.add_option("--doscar", doscar_file, "DOSCAR file path (used with --fermi-source=doscar)")
         ->capture_default_str();
-    app.add_option("--outcar", outcar_file, "OUTCAR file path (used with --fermi-source=outcar)")
-        ->capture_default_str();
+    app.add_option("--outcar", outcar_file, "OUTCAR file path (required even without --fermi-source=outcar)")
+        ->capture_default_str()
+        ->check(CLI::ExistingFile);
     auto* fermi_opt = app.add_option("-e,--fermi", manual_fermi, "Fermi level in eV (used with --fermi-source=manual)")
                           ->capture_default_str();
 
@@ -40,6 +41,16 @@ int main(int argc, char** argv) {
 
     double e_fermi{0.0};
     bool success{true};
+
+    bool is_ncl = false;
+    if (!checkNonCollinear(outcar_file, is_ncl)) {
+        return 1;
+    }
+
+    if (is_ncl) {
+        std::cerr << "Error: LNONCOLLINEAR tag was .TRUE.. That is NOT supported!\n";
+        return 1;
+    }
 
     // Logic to determine the active Fermi source
     if (fermiSource == "doscar") {
