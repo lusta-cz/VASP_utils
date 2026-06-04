@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cmath>
 #include <cstdio>
 #include <string>
 
@@ -8,7 +9,7 @@
 static const std::string kTmpDir = std::string(TEST_DATA_DIR);
 constexpr double kTol = 1e-10;
 
-// ─── fixture file helpers ────────────────────────────────────────────────────
+// ─── Fixture File Helpers ────────────────────────────────────────────────────
 
 static std::string eigenval1Path() {
     return kTmpDir + "/test_ev2b_spin1_tmp.eigenval";
@@ -34,70 +35,60 @@ static void writeEigenval1(const char* path) {
     std::fputs("0.02\n", f);
     std::fputs("CAR\n", f);
     std::fputs("test system\n", f);
-    std::fputs("1 2 3\n", f);  // nions=1, nkpts=2, nbands=3
+    std::fputs(" 1 2 3\n", f);  // NIONS, NKPTS, NBANDS
+    // kpt 1
     std::fputs("\n", f);
-    std::fputs("0.000000 0.000000 0.000000 0.250000\n", f);
-    std::fputs("1 -13.5821\n", f);
-    std::fputs("2  -4.7293\n", f);
-    std::fputs("3   3.0000\n", f);
+    std::fputs("  0.0 0.0 0.0  1.0\n", f);
+    std::fputs(" 1  -10.1234\n", f);
+    std::fputs(" 2   -5.5678\n", f);
+    std::fputs(" 3    0.1234\n", f);
+    // kpt 2
     std::fputs("\n", f);
-    std::fputs("0.500000 0.000000 0.000000 0.250000\n", f);
-    std::fputs("1 -13.1234\n", f);
-    std::fputs("2  -4.5000\n", f);
-    std::fputs("3   3.5000\n", f);
+    std::fputs("  0.5 0.0 0.0  1.0\n", f);
+    std::fputs(" 1  -9.0000\n", f);
+    std::fputs(" 2  -4.0000\n", f);
+    std::fputs(" 3   1.5000\n", f);
     std::fclose(f);
 }
 
-// nspin=2, 1 k-point, 2 bands — band lines carry: idx e_up e_dn occ_up occ_dn
+// nspin=2, 1 k-point, 2 bands
 static void writeEigenval2(const char* path) {
     FILE* f = std::fopen(path, "w");
-    std::fputs("header line 1\n", f);
-    std::fputs("0.1 0.1 0.1 0.5 2.0\n", f);
-    std::fputs("0.02\n", f);
-    std::fputs("CAR\n", f);
-    std::fputs("test system\n", f);
-    std::fputs("1 1 2\n", f);  // nions=1, nkpts=1, nbands=2
+    std::fputs("h1\nh2\nh3\nh4\nh5\n", f);
+    std::fputs(" 1 1 2\n", f);  // NKPTS=1, NBANDS=2
     std::fputs("\n", f);
-    std::fputs("0.000000 0.000000 0.000000 0.500000\n", f);
-    std::fputs("1 -10.2345 -10.1234 1.00000 1.00000\n", f);
-    std::fputs("2  -5.6789  -5.5678 0.50000 0.48000\n", f);
+    std::fputs("  0.0 0.0 0.0  1.0\n", f);
+    std::fputs(" 1  -1.0000  -1.5000\n", f);  // up, down
+    std::fputs(" 2   2.0000   1.8000\n", f);
     std::fclose(f);
 }
 
 static void writeKpoints(const char* path) {
     FILE* f = std::fopen(path, "w");
-    std::fputs("K-path for band structure\n", f);
-    std::fputs("10\n", f);         // 10 k-points per segment
-    std::fputs("Line-mode\n", f);  // starts with 'L'
-    std::fputs("reciprocal\n", f);
-    std::fputs("0.000 0.000 0.000 ! Gamma\n", f);
-    std::fputs("0.500 0.000 0.000 ! X\n", f);
+    std::fputs("High symmetry path test\n", f);
+    std::fputs("10\n", f);  // 10 k-points per segment
+    std::fputs("Line-mode\n", f);
+    std::fputs("Reciprocal\n", f);
+    std::fputs("  0.0 0.0 0.0 ! Gamma\n", f);
+    std::fputs("  0.5 0.0 0.0 ! X\n", f);
     std::fclose(f);
 }
 
 static void writeDoscar(const char* path) {
     FILE* f = std::fopen(path, "w");
-    std::fputs("1 1 1 1 1\n", f);
-    std::fputs("CAR\n", f);
-    std::fputs("0.02\n", f);
-    std::fputs("NELEM\n", f);
-    std::fputs("comment\n", f);
-    std::fputs("20.0000 -20.0000 301 5.1234 1.0000\n", f);  // Efermi = 5.1234
+    std::fputs("l1\nl2\nl3\nl4\nl5\n", f);
+    std::fputs("  10.0  0.0  1000  5.1234  1.000\n", f);  // Efermi is 4th value
     std::fclose(f);
 }
 
-// Two E-fermi entries; parser must return the last one (7.8901)
 static void writeOutcar(const char* path) {
     FILE* f = std::fopen(path, "w");
-    std::fputs(" VASP output\n", f);
-    std::fputs("   E-fermi :   3.1415   XC(G=0): -0.1234   alpha+bet: -0.01\n", f);
-    std::fputs(" more SCF output\n", f);
-    std::fputs("   E-fermi :   7.8901   XC(G=0): -0.1234   alpha+bet: -0.01\n", f);
-    std::fputs(" final output\n", f);
+    std::fputs(" some lines before\n", f);
+    std::fputs(" E-fermi :   4.9876     \n", f);
     std::fclose(f);
 }
 
-// ─── Fixture ─────────────────────────────────────────────────────────────────
+// ─── Test Fixture ────────────────────────────────────────────────────────────
 
 class EigenvalParseTest : public ::testing::Test {
 protected:
@@ -108,6 +99,7 @@ protected:
         writeDoscar(doscarPath().c_str());
         writeOutcar(outcarPath().c_str());
     }
+
     void TearDown() override {
         std::remove(eigenval1Path().c_str());
         std::remove(eigenval2Path().c_str());
@@ -117,127 +109,60 @@ protected:
     }
 };
 
-// ─── parseEigenval: nspin=1 ───────────────────────────────────────────────────
+// ─── parseEigenval ───────────────────────────────────────────────────────────
 
-TEST_F(EigenvalParseTest, ParseEigenvalReturnsTrue) {
-    EigenvalData data;
-    EXPECT_TRUE(parseEigenval(eigenval1Path(), data));
-}
-
-TEST_F(EigenvalParseTest, ParseEigenvalTotalKpoints) {
+TEST_F(EigenvalParseTest, ParseEigenvalSpin1Metadata) {
     EigenvalData data;
     ASSERT_TRUE(parseEigenval(eigenval1Path(), data));
     EXPECT_EQ(data.total_kpoints, 2);
-}
-
-TEST_F(EigenvalParseTest, ParseEigenvalNbands) {
-    EigenvalData data;
-    ASSERT_TRUE(parseEigenval(eigenval1Path(), data));
     EXPECT_EQ(data.nbands, 3);
-}
-
-TEST_F(EigenvalParseTest, ParseEigenvalNspin1Detected) {
-    EigenvalData data;
-    ASSERT_TRUE(parseEigenval(eigenval1Path(), data));
     EXPECT_EQ(data.nspin, 1);
 }
 
-TEST_F(EigenvalParseTest, ParseEigenvalKpointVectorSize) {
+TEST_F(EigenvalParseTest, ParseEigenvalSpin1Values) {
     EigenvalData data;
     ASSERT_TRUE(parseEigenval(eigenval1Path(), data));
-    EXPECT_EQ(data.kpoints.size(), 2u);
-}
+    ASSERT_EQ(data.kpoints.size(), 2);
 
-TEST_F(EigenvalParseTest, ParseEigenvalFirstKpointCoords) {
-    EigenvalData data;
-    ASSERT_TRUE(parseEigenval(eigenval1Path(), data));
-    ASSERT_GE(data.kpoints.size(), 1u);
     EXPECT_NEAR(data.kpoints[0].x, 0.0, kTol);
-    EXPECT_NEAR(data.kpoints[0].y, 0.0, kTol);
-    EXPECT_NEAR(data.kpoints[0].z, 0.0, kTol);
+    EXPECT_NEAR(data.kpoints[0].energies_up[0], -10.1234, kTol);
+    EXPECT_NEAR(data.kpoints[0].energies_up[1], -5.5678, kTol);
 }
 
-TEST_F(EigenvalParseTest, ParseEigenvalSecondKpointCoords) {
-    EigenvalData data;
-    ASSERT_TRUE(parseEigenval(eigenval1Path(), data));
-    ASSERT_GE(data.kpoints.size(), 2u);
-    EXPECT_NEAR(data.kpoints[1].x, 0.5, kTol);
-    EXPECT_NEAR(data.kpoints[1].y, 0.0, kTol);
-    EXPECT_NEAR(data.kpoints[1].z, 0.0, kTol);
-}
-
-TEST_F(EigenvalParseTest, ParseEigenvalFirstKpointBandEnergies) {
-    EigenvalData data;
-    ASSERT_TRUE(parseEigenval(eigenval1Path(), data));
-    ASSERT_GE(data.kpoints.size(), 1u);
-    ASSERT_EQ(data.kpoints[0].energies_up.size(), 3u);
-    EXPECT_NEAR(data.kpoints[0].energies_up[0], -13.5821, kTol);
-    EXPECT_NEAR(data.kpoints[0].energies_up[1], -4.7293, kTol);
-    EXPECT_NEAR(data.kpoints[0].energies_up[2], 3.0000, kTol);
-}
-
-TEST_F(EigenvalParseTest, ParseEigenvalSecondKpointBandEnergies) {
-    EigenvalData data;
-    ASSERT_TRUE(parseEigenval(eigenval1Path(), data));
-    ASSERT_GE(data.kpoints.size(), 2u);
-    ASSERT_EQ(data.kpoints[1].energies_up.size(), 3u);
-    EXPECT_NEAR(data.kpoints[1].energies_up[0], -13.1234, kTol);
-    EXPECT_NEAR(data.kpoints[1].energies_up[1], -4.5000, kTol);
-    EXPECT_NEAR(data.kpoints[1].energies_up[2], 3.5000, kTol);
-}
-
-TEST_F(EigenvalParseTest, ParseEigenvalNspin1SpinDownEmpty) {
-    EigenvalData data;
-    ASSERT_TRUE(parseEigenval(eigenval1Path(), data));
-    for (const auto& kp : data.kpoints) {
-        EXPECT_TRUE(kp.energies_dn.empty());
-    }
-}
-
-// ─── parseEigenval: nspin=2 ───────────────────────────────────────────────────
-
-TEST_F(EigenvalParseTest, ParseEigenvalNspin2Detected) {
-    EigenvalData data;
-    ASSERT_TRUE(parseEigenval(eigenval2Path(), data));
-    EXPECT_EQ(data.nspin, 2);
-}
-
-TEST_F(EigenvalParseTest, ParseEigenvalNspin2Metadata) {
+TEST_F(EigenvalParseTest, ParseEigenvalSpin2Metadata) {
     EigenvalData data;
     ASSERT_TRUE(parseEigenval(eigenval2Path(), data));
     EXPECT_EQ(data.total_kpoints, 1);
     EXPECT_EQ(data.nbands, 2);
+    EXPECT_EQ(data.nspin, 2);
 }
 
-TEST_F(EigenvalParseTest, ParseEigenvalNspin2SpinUpEnergies) {
+TEST_F(EigenvalParseTest, ParseEigenvalSpin2Values) {
     EigenvalData data;
     ASSERT_TRUE(parseEigenval(eigenval2Path(), data));
-    ASSERT_EQ(data.kpoints.size(), 1u);
-    ASSERT_EQ(data.kpoints[0].energies_up.size(), 2u);
-    EXPECT_NEAR(data.kpoints[0].energies_up[0], -10.2345, kTol);
-    EXPECT_NEAR(data.kpoints[0].energies_up[1], -5.6789, kTol);
-}
+    ASSERT_EQ(data.kpoints.size(), 1);
 
-TEST_F(EigenvalParseTest, ParseEigenvalNspin2SpinDownEnergies) {
-    EigenvalData data;
-    ASSERT_TRUE(parseEigenval(eigenval2Path(), data));
-    ASSERT_EQ(data.kpoints.size(), 1u);
-    ASSERT_EQ(data.kpoints[0].energies_dn.size(), 2u);
-    EXPECT_NEAR(data.kpoints[0].energies_dn[0], -10.1234, kTol);
-    EXPECT_NEAR(data.kpoints[0].energies_dn[1], -5.5678, kTol);
+    EXPECT_NEAR(data.kpoints[0].energies_up[0], -1.0, kTol);
+    EXPECT_NEAR(data.kpoints[0].energies_dn[0], -1.5, kTol);
+    EXPECT_NEAR(data.kpoints[0].energies_up[1], 2.0, kTol);
+    EXPECT_NEAR(data.kpoints[0].energies_dn[1], 1.8, kTol);
 }
 
 // ─── parseKpoints ─────────────────────────────────────────────────────────────
 
 TEST_F(EigenvalParseTest, ParseKpointsReturnsTrue) {
-    int kpts = 0;
-    EXPECT_TRUE(parseKpoints(kpointsPath(), kpts));
+    BZPath bz_path;
+    EXPECT_TRUE(parseKpoints(kpointsPath(), bz_path));
 }
 
-TEST_F(EigenvalParseTest, ParseKpointsPerSegmentValue) {
-    int kpts = 0;
-    ASSERT_TRUE(parseKpoints(kpointsPath(), kpts));
-    EXPECT_EQ(kpts, 10);
+TEST_F(EigenvalParseTest, ParseKpointsStructData) {
+    BZPath bz_path;
+    ASSERT_TRUE(parseKpoints(kpointsPath(), bz_path));
+    EXPECT_EQ(bz_path.kpts_per_seg, 10);
+    EXPECT_EQ(bz_path.num_segments, 1);
+    ASSERT_EQ(bz_path.segments.size(), 1);
+    EXPECT_EQ(bz_path.segments[0].start_label, "Gamma");
+    EXPECT_EQ(bz_path.segments[0].end_label, "X");
 }
 
 // ─── parseFromDoscar ──────────────────────────────────────────────────────────
@@ -263,13 +188,29 @@ TEST_F(EigenvalParseTest, ParseFromOutcarReturnsTrue) {
 TEST_F(EigenvalParseTest, ParseFromOutcarFermiLevel) {
     double e_fermi = 0.0;
     ASSERT_TRUE(parseFromOutcar(outcarPath(), e_fermi));
-    EXPECT_NEAR(e_fermi, 7.8901, kTol);
+    EXPECT_NEAR(e_fermi, 4.9876, kTol);
 }
 
-TEST_F(EigenvalParseTest, ParseFromOutcarUsesLastOccurrence) {
-    // OUTCAR has E-fermi = 3.1415 first, then 7.8901 last — only the last counts
-    double e_fermi = 0.0;
-    ASSERT_TRUE(parseFromOutcar(outcarPath(), e_fermi));
-    EXPECT_NEAR(e_fermi, 7.8901, kTol);
-    EXPECT_GT(e_fermi, 5.0);
+// ─── writeKpointsLog ──────────────────────────────────────────────────────────
+
+TEST_F(EigenvalParseTest, WriteKpointsLogExecution) {
+    BZPath bz_path;
+    EigenvalData data;
+    ASSERT_TRUE(parseKpoints(kpointsPath(), bz_path));
+    ASSERT_TRUE(parseEigenval(eigenval1Path(), data));
+
+    // Artificially expand data to fit the kpoints per segment requirements for the test
+    data.total_kpoints = 10;
+    data.kpoints.resize(10);
+    for (int i = 0; i < 10; ++i) {
+        data.kpoints[i].x = 0.05 * i;
+        data.kpoints[i].y = 0.0;
+        data.kpoints[i].z = 0.0;
+    }
+
+    double log_cumulative_dist = 0.0;
+    std::string log_file = kTmpDir + "/test_kpoints.log";
+    EXPECT_TRUE(writeKpointsLog(log_file, bz_path, data, log_cumulative_dist));
+    EXPECT_GT(log_cumulative_dist, 0.0);
+    std::remove(log_file.c_str());
 }

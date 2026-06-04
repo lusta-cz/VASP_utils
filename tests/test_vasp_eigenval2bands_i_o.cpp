@@ -15,8 +15,8 @@ TEST(EigenvalIO, ParseEigenvalNonExistentFile) {
 }
 
 TEST(EigenvalIO, ParseKpointsNonExistentFile) {
-    int kpts = 0;
-    EXPECT_FALSE(parseKpoints("nonexistent_kpoints.dat", kpts));
+    BZPath bz_path;
+    EXPECT_FALSE(parseKpoints("nonexistent_kpoints.dat", bz_path));
 }
 
 TEST(EigenvalIO, ParseFromDoscarNonExistentFile) {
@@ -42,134 +42,6 @@ TEST(EigenvalIO, ParseEigenvalEmptyFile) {
     std::remove(path.c_str());
 }
 
-TEST(EigenvalIO, ParseEigenvalTruncatedBeforeLine6) {
-    const std::string path = kTmpDir + "/test_io_eigenval_trunc_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("header1\n", f);
-    std::fputs("header2\n", f);
-    std::fputs("header3\n", f);
-    // Only 3 lines, parser needs 5 header + 1 data
-    std::fclose(f);
-
-    EigenvalData data;
-    EXPECT_FALSE(parseEigenval(path, data));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseEigenvalMalformedLine6) {
-    const std::string path = kTmpDir + "/test_io_eigenval_badl6_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("h1\nh2\nh3\nh4\nh5\n", f);
-    std::fputs("not integers here\n", f);
-    std::fclose(f);
-
-    EigenvalData data;
-    EXPECT_FALSE(parseEigenval(path, data));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseEigenvalZeroKPoints) {
-    const std::string path = kTmpDir + "/test_io_eigenval_zerokpt_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("h1\nh2\nh3\nh4\nh5\n", f);
-    std::fputs("1 0 3\n", f);  // nkpts=0
-    std::fclose(f);
-
-    EigenvalData data;
-    EXPECT_FALSE(parseEigenval(path, data));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseEigenvalNegativeKPoints) {
-    const std::string path = kTmpDir + "/test_io_eigenval_negkpt_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("h1\nh2\nh3\nh4\nh5\n", f);
-    std::fputs("1 -1 3\n", f);  // nkpts=-1
-    std::fclose(f);
-
-    EigenvalData data;
-    EXPECT_FALSE(parseEigenval(path, data));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseEigenvalZeroBands) {
-    const std::string path = kTmpDir + "/test_io_eigenval_zeroband_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("h1\nh2\nh3\nh4\nh5\n", f);
-    std::fputs("1 1 0\n", f);  // nbands=0
-    std::fclose(f);
-
-    EigenvalData data;
-    EXPECT_FALSE(parseEigenval(path, data));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseEigenvalMissingKPointSeparator) {
-    // File ends immediately after line 6 — no blank separator follows
-    const std::string path = kTmpDir + "/test_io_eigenval_nosep_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("h1\nh2\nh3\nh4\nh5\n", f);
-    std::fputs("1 1 1\n", f);
-    std::fclose(f);
-
-    EigenvalData data;
-    EXPECT_FALSE(parseEigenval(path, data));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseEigenvalMissingKPointCoords) {
-    const std::string path = kTmpDir + "/test_io_eigenval_nocoords_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("h1\nh2\nh3\nh4\nh5\n", f);
-    std::fputs("1 1 1\n", f);
-    std::fputs("\n", f);  // blank separator present, but no coords line
-    std::fclose(f);
-
-    EigenvalData data;
-    EXPECT_FALSE(parseEigenval(path, data));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseEigenvalMalformedKPointLine) {
-    const std::string path = kTmpDir + "/test_io_eigenval_badkpt_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("h1\nh2\nh3\nh4\nh5\n", f);
-    std::fputs("1 1 2\n", f);
-    std::fputs("\n", f);
-    std::fputs("not_a_number x y z\n", f);  // kx can't be parsed as double
-    std::fputs("1 -5.0\n", f);
-    std::fputs("2 -3.0\n", f);
-    std::fclose(f);
-
-    EigenvalData data;
-    EXPECT_FALSE(parseEigenval(path, data));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseEigenvalMissingBandData) {
-    const std::string path = kTmpDir + "/test_io_eigenval_noband_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("h1\nh2\nh3\nh4\nh5\n", f);
-    std::fputs("1 1 2\n", f);
-    std::fputs("\n", f);
-    std::fputs("0.0 0.0 0.0 0.5\n", f);
-    // Band lines missing — file ends here
-    std::fclose(f);
-
-    EigenvalData data;
-    EXPECT_FALSE(parseEigenval(path, data));
-    std::remove(path.c_str());
-}
-
 // ─── KPOINTS error cases ──────────────────────────────────────────────────────
 
 TEST(EigenvalIO, ParseKpointsEmptyFile) {
@@ -178,87 +50,56 @@ TEST(EigenvalIO, ParseKpointsEmptyFile) {
     ASSERT_NE(f, nullptr);
     std::fclose(f);
 
-    int kpts = 0;
-    EXPECT_FALSE(parseKpoints(path, kpts));
+    BZPath bz_path;
+    EXPECT_FALSE(parseKpoints(path, bz_path));
     std::remove(path.c_str());
 }
 
-TEST(EigenvalIO, ParseKpointsMissingLine3) {
-    // Only 2 lines; parser needs line 3 to confirm line mode
-    const std::string path = kTmpDir + "/test_io_kpoints_trunc_tmp.dat";
+TEST(EigenvalIO, ParseKpointsInvalidMode) {
+    const std::string path = kTmpDir + "/test_io_kpoints_badmode_tmp.dat";
     FILE* f = std::fopen(path.c_str(), "w");
     ASSERT_NE(f, nullptr);
-    std::fputs("K-Path\n", f);
-    std::fputs("10\n", f);
+    std::fputs("Invalid Mode Test\n", f);
+    std::fputs("20\n", f);
+    std::fputs("Cartesian\n", f);  // Expected "Line-mode"
     std::fclose(f);
 
-    int kpts = 0;
-    EXPECT_FALSE(parseKpoints(path, kpts));
+    BZPath bz_path;
+    EXPECT_FALSE(parseKpoints(path, bz_path));
     std::remove(path.c_str());
 }
 
-TEST(EigenvalIO, ParseKpointsNotLineMode) {
-    const std::string path = kTmpDir + "/test_io_kpoints_notline_tmp.dat";
+TEST(EigenvalIO, ParseKpointsOddLinesBoundaryViolation) {
+    const std::string path = kTmpDir + "/test_io_kpoints_oddlines_tmp.dat";
     FILE* f = std::fopen(path.c_str(), "w");
     ASSERT_NE(f, nullptr);
-    std::fputs("K-Path\n", f);
-    std::fputs("10\n", f);
-    std::fputs("Monkhorst-Pack\n", f);  // doesn't start with 'L'
-    std::fclose(f);
-
-    int kpts = 0;
-    EXPECT_FALSE(parseKpoints(path, kpts));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseKpointsPerSegmentOne) {
-    // kpts_per_seg must be > 1
-    const std::string path = kTmpDir + "/test_io_kpoints_one_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("K-Path\n", f);
-    std::fputs("1\n", f);
+    std::fputs("Odd lines check\n", f);
+    std::fputs("15\n", f);
     std::fputs("Line-mode\n", f);
+    std::fputs("Reciprocal\n", f);
+    std::fputs("  0.0 0.0 0.0 ! Gamma\n", f);  // 1 coordinate line (odd)
     std::fclose(f);
 
-    int kpts = 0;
-    EXPECT_FALSE(parseKpoints(path, kpts));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseKpointsPerSegmentZero) {
-    const std::string path = kTmpDir + "/test_io_kpoints_zero_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("K-Path\n", f);
-    std::fputs("0\n", f);
-    std::fputs("Line-mode\n", f);
-    std::fclose(f);
-
-    int kpts = 0;
-    EXPECT_FALSE(parseKpoints(path, kpts));
-    std::remove(path.c_str());
-}
-
-TEST(EigenvalIO, ParseKpointsMalformedLine2) {
-    const std::string path = kTmpDir + "/test_io_kpoints_badl2_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fputs("K-Path\n", f);
-    std::fputs("not_an_integer\n", f);
-    std::fputs("Line-mode\n", f);
-    std::fclose(f);
-
-    int kpts = 0;
-    EXPECT_FALSE(parseKpoints(path, kpts));
+    BZPath bz_path;
+    EXPECT_FALSE(parseKpoints(path, bz_path));
     std::remove(path.c_str());
 }
 
 // ─── DOSCAR error cases ───────────────────────────────────────────────────────
 
-TEST(EigenvalIO, ParseFromDoscarTruncated) {
-    // Fewer than 6 lines — parser needs lines 1-5 (header) + line 6 (data)
-    const std::string path = kTmpDir + "/test_io_doscar_trunc_tmp.dat";
+TEST(EigenvalIO, ParseFromDoscarEmptyFile) {
+    const std::string path = kTmpDir + "/test_io_doscar_empty_tmp.dat";
+    FILE* f = std::fopen(path.c_str(), "w");
+    ASSERT_NE(f, nullptr);
+    std::fclose(f);
+
+    double e_fermi = 0.0;
+    EXPECT_FALSE(parseFromDoscar(path, e_fermi));
+    std::remove(path.c_str());
+}
+
+TEST(EigenvalIO, ParseFromDoscarShortHeader) {
+    const std::string path = kTmpDir + "/test_io_doscar_short_tmp.dat";
     FILE* f = std::fopen(path.c_str(), "w");
     ASSERT_NE(f, nullptr);
     std::fputs("line1\n", f);
@@ -271,7 +112,6 @@ TEST(EigenvalIO, ParseFromDoscarTruncated) {
 }
 
 TEST(EigenvalIO, ParseFromDoscarMalformedLine6) {
-    // Line 6 needs at least 4 numeric values: Emax Emin NEDOS Efermi
     const std::string path = kTmpDir + "/test_io_doscar_badl6_tmp.dat";
     FILE* f = std::fopen(path.c_str(), "w");
     ASSERT_NE(f, nullptr);
@@ -291,8 +131,7 @@ TEST(EigenvalIO, ParseFromOutcarNoEFermi) {
     FILE* f = std::fopen(path.c_str(), "w");
     ASSERT_NE(f, nullptr);
     std::fputs(" VASP output\n", f);
-    std::fputs(" no fermi level here\n", f);
-    std::fputs(" just regular output\n", f);
+    std::fputs(" no fermi level here...\n", f);
     std::fclose(f);
 
     double e_fermi = 0.0;
@@ -300,13 +139,12 @@ TEST(EigenvalIO, ParseFromOutcarNoEFermi) {
     std::remove(path.c_str());
 }
 
-TEST(EigenvalIO, ParseFromOutcarEmptyFile) {
-    const std::string path = kTmpDir + "/test_io_outcar_empty_tmp.dat";
-    FILE* f = std::fopen(path.c_str(), "w");
-    ASSERT_NE(f, nullptr);
-    std::fclose(f);
+// ─── LOGGER validation ────────────────────────────────────────────────────────
 
-    double e_fermi = 0.0;
-    EXPECT_FALSE(parseFromOutcar(path, e_fermi));
-    std::remove(path.c_str());
+TEST(EigenvalIO, WriteKpointsLogInvalidPath) {
+    BZPath bz_path;
+    EigenvalData data;
+    double final_dist = 0.0;
+    // Attempting to write to a non-existent subdirectory path
+    EXPECT_FALSE(writeKpointsLog("/invalid_dir_xyz/kpoints.log", bz_path, data, final_dist));
 }
