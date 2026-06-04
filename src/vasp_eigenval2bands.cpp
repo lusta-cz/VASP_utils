@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
     std::string doscar_file{"DOSCAR"};
     std::string outcar_file{"OUTCAR"};
     double manual_fermi{0.0};
-    std::string fermiSource{"doscar"};
+    std::string fermiSource{"outcar"};
 
     // CLI Options
     app.add_option("-i,--input", eigen_file, "Input EIGENVAL file")->default_val("EIGENVAL")->check(CLI::ExistingFile);
@@ -80,9 +80,9 @@ int main(int argc, char** argv) {
         std::cout << "Warning: Reading of the Fermi level failed! Continuing without energy shift!\n";
     }
 
-    int kpoints_between{0};
+    BZPath bz_path;
     // --- Parsing from KPOINTS file
-    if (!parseKpoints(kpoints_file, kpoints_between)) {
+    if (!parseKpoints(kpoints_file, bz_path)) {
         return 1;
     }
 
@@ -92,6 +92,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    int kpoints_between = bz_path.kpts_per_seg;
     // --- Path Calculation and Output Generation ---
     if (data.total_kpoints == 0 || kpoints_between == 0) {
         std::cerr << "Error: Something went wrong while reading the number of k points!\n";
@@ -99,8 +100,25 @@ int main(int argc, char** argv) {
     }
 
     int num_paths = data.total_kpoints / kpoints_between;
-    double cumulative_dist = 0.0;
+    // Integrity Verification
+    if (num_paths != bz_path.num_segments) {
+        std::cerr << "Warning: EIGENVAL tracks count (" << num_paths << ") does not match KPOINTS structural count ("
+                  << bz_path.num_segments << ")!\n";
+    }
 
+    // =========================================================================
+    // CALL SHARED REFACTORED LOG FUNCTION
+    // =========================================================================
+    double log_cumulative_dist = 0.0;
+    if (!writeKpointsLog("kpoints.log", bz_path, data, log_cumulative_dist)) {
+        return 1;
+    }
+    std::cout << "Success: Generated automated high-symmetry coordinate mapping -> 'kpoints.log'.\n";
+
+    // =========================================================================
+    // GENERATING INDEPENDENT SPLIT PATH FILES (With Discontinuity tracking)
+    // =========================================================================
+    double split_cumulative_dist = 0.0;
     for (int p = 0; p < num_paths; ++p) {
         std::string out_name = "band_path_" + std::to_string(p + 1) + ".dat";
         std::ofstream out(out_name);
@@ -115,9 +133,18 @@ int main(int argc, char** argv) {
         double segment_dist = std::sqrt(dx * dx + dy * dy + dz * dz);
         double step = (kpoints_between > 1) ? (segment_dist / (kpoints_between - 1)) : 0.0;
 
+        // ─── HERE IS THE CONTINUITY CHECK FOR SEPARATE FILES ───
+        if (p > 0) {
+            std::string prev_end = bz_path.segments[p - 1].end_label;
+            std::string curr_start = bz_path.segments[p].start_label;
+            if (prev_end != curr_start) {
+                split_cumulative_dist += 0.25;  // Shifts the starting coordinate of the new file forward!
+            }
+        }
+
         for (int b = 0; b < data.nbands; ++b) {
             for (int k = 0; k < kpoints_between; ++k) {
-                double dist = cumulative_dist + k * step;
+                double dist = split_cumulative_dist + k * step;
                 const auto& kp = data.kpoints[s_idx + k];
                 if (data.nspin == 2)
                     out << dist << " " << kp.energies_up[b] - e_fermi << " " << kp.energies_dn[b] - e_fermi << "\n";
@@ -126,11 +153,70 @@ int main(int argc, char** argv) {
             }
             out << "\n";
         }
+        split_cumulative_dist += segment_dist;
+    }
 
-        cumulative_dist += segment_dist;
+    // =========================================================================
+    // GENERATING COMBINED TRACE PATH FILE (bands_all.dat with continuity check)
+    // =========================================================================
+    std::string combined_name = "bands_all.dat";
+    std::ofstream comb_out(combined_name);
+    comb_out << std::fixed << std::setprecision(10);
+    comb_out << "# X_Distance   Energy_Up   [Energy_Dn]\n";
+
+    double comb_cumulative_dist = 0.0;
+
+    for (int b = 0; b < data.nbands; ++b) {
+        // Reset distance tracker for each discrete band layout sequence
+        comb_cumulative_dist = 0.0;
+
+        for (int p = 0; p < num_paths; ++p) {
+            int s_idx = p * kpoints_between;
+            int e_idx = s_idx + kpoints_between - 1;
+
+            double dx = data.kpoints[e_idx].x - data.kpoints[s_idx].x;
+            double dy = data.kpoints[e_idx].y - data.kpoints[s_idx].y;
+            double dz = data.kpoints[e_idx].z - data.kpoints[s_idx].z;
+            double segment_dist = std::sqrt(dx * dx + dy * dy + dz * dz);
+            double step = (kpoints_between > 1) ? (segment_dist / (kpoints_between - 1)) : 0.0;
+
+            if (p > 0) {
+                std::string prev_end = bz_path.segments[p - 1].end_label;
+                std::string curr_start = bz_path.segments[p].start_label;
+                if (prev_end != curr_start) {
+                    comb_cumulative_dist += 0.25;
+                    // TRACE BREAK: Double blank rows inform Gnuplot to drop drawing connectivity lines
+                    // across the empty gap length
+                    comb_out << "\n\n";
+                }
+            }
+
+            for (int k = 0; k < kpoints_between; ++k) {
+                double dist = comb_cumulative_dist + k * step;
+                const auto& kp = data.kpoints[s_idx + k];
+
+                if (data.nspin == 2) {
+                    comb_out << dist << " " << kp.energies_up[b] - e_fermi << " " << kp.energies_dn[b] - e_fermi
+                             << "\n";
+                } else {
+                    comb_out << dist << " " << kp.energies_up[b] - e_fermi << "\n";
+                }
+            }
+            comb_cumulative_dist += segment_dist;
+        }
+        comb_out << "\n\n";  // Isolate complete band sequence trails cleanly from each other
+    }
+
+    // =========================================================================
+    // SANITY CHECK
+    // =========================================================================
+    if (std::abs(split_cumulative_dist - log_cumulative_dist) > 1e-5 ||
+        std::abs(comb_cumulative_dist - log_cumulative_dist) > 1e-5) {
+        std::cerr << "Warning: Something went wrong and the 'kpoints.log' (" << log_cumulative_dist
+                  << "), split files (" << split_cumulative_dist << "), or 'bands_all.dat' (" << comb_cumulative_dist
+                  << ") do not have matching final x-coordinates!\n";
     }
 
     std::cout << "Success: Generated " << num_paths << " data files for plotting.\n";
-
     return 0;
 }

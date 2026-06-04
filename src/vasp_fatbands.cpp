@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     std::string procar_file{"PROCAR"};
     std::string poscar_file{"CONTCAR"};
     double manual_fermi{0.0};
-    std::string fermiSource{"doscar"};
+    std::string fermiSource{"outcar"};
     std::string element{};
     int atom_required{-1};
     bool element_option = true;
@@ -99,9 +99,8 @@ int main(int argc, char** argv) {
         std::cout << "Warning: Reading of the Fermi level failed! Continuing without energy shift!\n";
     }
 
-    int kpoints_between{0};
-    // --- Parsing from KPOINTS file
-    if (!parseKpoints(kpoints_file, kpoints_between)) {
+    BZPath bz_path;
+    if (!parseKpoints(kpoints_file, bz_path)) {
         return 1;
     }
 
@@ -111,6 +110,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    int kpoints_between = bz_path.kpts_per_seg;
     // --- Path Calculation and Output Generation ---
     if (data.total_kpoints == 0 || kpoints_between == 0) {
         std::cerr << "Error: Something went wrong while reading the number of k points!\n";
@@ -159,7 +159,11 @@ int main(int argc, char** argv) {
     }
     // Deduce path segments
     int num_paths = data.total_kpoints / kpoints_between;
+    if (num_paths != bz_path.num_segments) {
+        std::cerr << "Warning: EIGENVAL tracks count does not match KPOINTS structural count!\n";
+    }
 
+    double cumulative_dist = 0.0;
     for (int i_num_files = 0; i_num_files < num_element_wanted; i_num_files++) {
         // This calculates the exact global row index for this specific site inside the PROCAR data matrix
         int target_ion_idx = global_atom_offset + i_num_files;
@@ -169,7 +173,7 @@ int main(int argc, char** argv) {
         out << std::fixed << std::setprecision(10);
 
         for (int b = 0; b < data.nbands; ++b) {
-            double cumulative_dist = 0.0;
+            cumulative_dist = 0.0;
 
             for (int p = 0; p < num_paths; ++p) {
                 int s_idx = p * kpoints_between;
@@ -180,6 +184,15 @@ int main(int argc, char** argv) {
                 double dz = data.kpoints[e_idx].z - data.kpoints[s_idx].z;
                 double segment_dist = std::sqrt(dx * dx + dy * dy + dz * dz);
                 double step = (kpoints_between > 1) ? (segment_dist / (kpoints_between - 1)) : 0.0;
+
+                if (p > 0) {
+                    std::string prev_end = bz_path.segments[p - 1].end_label;
+                    std::string curr_start = bz_path.segments[p].start_label;
+                    if (prev_end != curr_start) {
+                        cumulative_dist += 0.25;
+                        out << "\n\n";  // Double newline break instructs Gnuplot to lift pen
+                    }
+                }
 
                 for (int k = 0; k < kpoints_between; ++k) {
                     double dist = cumulative_dist + k * step;
@@ -202,10 +215,28 @@ int main(int argc, char** argv) {
                 }
                 cumulative_dist += segment_dist;
             }
-            out << "\n";
+            out << "\n\n";
         }
         std::cout << "Success: Generated file '" << out_name << "' for element '" << element << "' number "
                   << (i_num_files + 1) << ".\n";
+    }
+
+    // =========================================================================
+    // CALL SHARED REFACTORED LOG FUNCTION
+    // =========================================================================
+    double log_cumulative_dist = 0.0;
+    if (!writeKpointsLog("kpoints.log", bz_path, data, log_cumulative_dist)) {
+        return 1;
+    }
+
+    std::cout << "Success: Generated automated high-symmetry coordinate mapping -> 'kpoints.log'.\n";
+
+    // =========================================================================
+    // SYSTEM TRACKING INTEGRITY SANITY CHECK
+    // =========================================================================
+    if (std::abs(cumulative_dist - log_cumulative_dist) > 1e-5) {
+        std::cerr << "Warning: Something went wrong and the 'kpoints.log' (" << log_cumulative_dist
+                  << "), 'bands_all.dat' (" << cumulative_dist << ") do not have matching final x-coordinates!\n";
     }
 
     return 0;

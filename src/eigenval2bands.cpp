@@ -1,6 +1,8 @@
 #include "eigenval2bands.h"
 
+#include <cmath>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -87,32 +89,90 @@ bool parseOutcarFermi(std::ifstream& file, double& e_fermi, ParseError& error) {
 // KPOINTS
 // ---------------------------------------------------------------------------
 
-bool parseKpointsFile(std::ifstream& file, int& kpts_per_seg, ParseError& error) {
+// Helper function to extract high-symmetry text tokens or comments
+std::string extractLabelFromLine(const std::string& line) {
+    size_t comment_pos = line.find_first_of("!#");
+    std::string clean_part;
+
+    if (comment_pos != std::string::npos) {
+        clean_part = line.substr(comment_pos + 1);
+    } else {
+        std::istringstream iss(line);
+        double x, y, z;
+        if (iss >> x >> y >> z) {
+            std::string remaining;
+            std::getline(iss, remaining);
+            clean_part = remaining;
+        } else {
+            return "unknown";
+        }
+    }
+
+    size_t first = clean_part.find_first_not_of(" \t\r\n");
+    if (first == std::string::npos)
+        return "unknown";
+    size_t last = clean_part.find_last_not_of(" \t\r\n");
+
+    std::string label = clean_part.substr(first, (last - first + 1));
+    return label.empty() ? "unknown" : label;
+}
+bool parseKpointsFile(std::ifstream& file, BZPath& bz_path, ParseError& error) {
     std::string line;
     int line_number = 0;
 
-    // Line 1: comment — skip
-    if (!readRequiredLine(file, line, line_number, error, "KPOINTS comment line"))
+    // Line 1 Check: Comment/Header
+    if (!readRequiredLine(file, line, line_number, error, "KPOINTS line 1 (header)"))
         return false;
 
-    // Line 2: k-points per segment
-    if (!readRequiredLine(file, line, line_number, error, "KPOINTS k-points per segment"))
+    // Line 2 Check: Interstitial k-points count per line section
+    if (!readRequiredLine(file, line, line_number, error, "KPOINTS line 2 (k-points count)"))
         return false;
 
-    std::istringstream ss(line);
-    if (!(ss >> kpts_per_seg))
-        return fail(error, ParseErrorKind::Parse, line_number, "expected integer k-points per segment, got: " + line);
+    std::istringstream ss2(line);
+    if (!(ss2 >> bz_path.kpts_per_seg)) {
+        return fail(error, ParseErrorKind::Parse, line_number,
+                    "expected integer for k-points per direction, got: " + line);
+    }
 
-    if (kpts_per_seg <= 1)
-        return fail(error, ParseErrorKind::Semantic, line_number, "k-points per segment must be greater than 1");
-
-    // Line 3: must start with 'L'/'l' to confirm line mode
-    if (!readRequiredLine(file, line, line_number, error, "KPOINTS mode line"))
+    // Line 3 Check: MUST specify line-mode explicitly
+    if (!readRequiredLine(file, line, line_number, error, "KPOINTS line 3 (mode description)"))
         return false;
 
-    if (line.empty() || std::toupper(static_cast<unsigned char>(line[0])) != 'L')
+    // Find first non-whitespace character to check for 'L' or 'l'
+    size_t first_char_pos = line.find_first_not_of(" \t\r\n");
+    if (first_char_pos == std::string::npos || (line[first_char_pos] != 'L' && line[first_char_pos] != 'l')) {
         return fail(error, ParseErrorKind::Semantic, line_number,
-                    "KPOINTS file is not in line mode (line 3 must start with 'L'), got: " + line);
+                    "expected 'Line-mode' description on line 3, got: " + line);
+    }
+
+    // Line 4 Check: Coordinate system (Reciprocal/Cartesian)
+    if (!readRequiredLine(file, line, line_number, error, "KPOINTS line 4 (coordinate type)"))
+        return false;
+
+    // Read trailing coordinate pairs with safe structural checks
+    std::vector<std::string> coordinate_lines;
+    while (std::getline(file, line)) {
+        line_number++;
+        if (line.find_first_not_of(" \t\r\n") == std::string::npos) {
+            continue;  // Safely bypass trailing blank spacers
+        }
+        coordinate_lines.push_back(line);
+    }
+
+    // Validation: VASP line mode requires lines to come in pairs
+    if (coordinate_lines.size() % 2 != 0) {
+        return fail(error, ParseErrorKind::Semantic, line_number,
+                    "KPOINTS coordinate lines count must be even (pairs of points). Found: " +
+                        std::to_string(coordinate_lines.size()));
+    }
+
+    bz_path.num_segments = coordinate_lines.size() / 2;
+    bz_path.segments.resize(bz_path.num_segments);
+
+    for (int i = 0; i < bz_path.num_segments; ++i) {
+        bz_path.segments[i].start_label = extractLabelFromLine(coordinate_lines[2 * i]);
+        bz_path.segments[i].end_label = extractLabelFromLine(coordinate_lines[2 * i + 1]);
+    }
 
     return true;
 }
@@ -370,14 +430,14 @@ bool parseFromOutcar(const std::string& filename, double& e_fermi) {
     return true;
 }
 
-bool parseKpoints(const std::string& filename, int& kpts_per_seg) {
+bool parseKpoints(const std::string& filename, BZPath& bz_path) {
     std::ifstream file(filename);
     if (!file) {
         std::cerr << "I/O error reading " << filename << ": cannot open file\n";
         return false;
     }
     ParseError error;
-    if (!parseKpointsFile(file, kpts_per_seg, error)) {
+    if (!parseKpointsFile(file, bz_path, error)) {
         reportParseError(filename, error);
         return false;
     }
@@ -409,5 +469,63 @@ bool parseProcar(const std::string& filename, ProcarData& data) {
         reportParseError(filename, error);
         return false;
     }
+    return true;
+}
+
+bool writeKpointsLog(const std::string& filename, const BZPath& bz_path, const EigenvalData& data,
+                     double& final_cumulative_dist) {
+    std::ofstream log_out(filename);
+    if (!log_out) {
+        std::cerr << "Error: Cannot open file '" << filename << "' for writing kpoints log.\n";
+        return false;
+    }
+
+    int kpoints_between = bz_path.kpts_per_seg;
+    int num_paths = data.total_kpoints / kpoints_between;
+
+    log_out << std::fixed << std::setprecision(6);
+    log_out << "# High-Symmetry Plotting Ticks Reference Map\n";
+    log_out << "# X_Coordinate    Label\n";
+
+    double log_cumulative_dist = 0.0;
+
+    for (int p = 0; p < num_paths; ++p) {
+        int s_idx = p * kpoints_between;
+        int e_idx = s_idx + kpoints_between - 1;
+
+        double dx = data.kpoints[e_idx].x - data.kpoints[s_idx].x;
+        double dy = data.kpoints[e_idx].y - data.kpoints[s_idx].y;
+        double dz = data.kpoints[e_idx].z - data.kpoints[s_idx].z;
+        double segment_dist = std::sqrt(dx * dx + dy * dy + dz * dz);
+
+        // 1. Initial Start Point Boundary Label
+        if (p == 0) {
+            log_out << std::setw(12) << 0.000000 << "       " << bz_path.segments[0].start_label << "\n";
+        }
+        // 2. Continuous vs Discontinuous Junction Check
+        else {
+            std::string prev_end = bz_path.segments[p - 1].end_label;
+            std::string curr_start = bz_path.segments[p].start_label;
+
+            if (prev_end != curr_start) {
+                // Path break detected: apply 0.25 jump and write split label syntax
+                log_out << std::setw(12) << log_cumulative_dist << "       " << prev_end << "\n";
+                log_cumulative_dist += 0.25;
+                log_out << std::setw(12) << log_cumulative_dist << "       " << curr_start << "\n";
+            } else {
+                // Continuous point
+                log_out << std::setw(12) << log_cumulative_dist << "       " << curr_start << "\n";
+            }
+        }
+
+        log_cumulative_dist += segment_dist;
+
+        // 3. Absolute Terminal Path Node
+        if (p == num_paths - 1) {
+            log_out << std::setw(12) << log_cumulative_dist << "       " << bz_path.segments[p].end_label << "\n";
+        }
+    }
+
+    final_cumulative_dist = log_cumulative_dist;
     return true;
 }

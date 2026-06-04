@@ -262,9 +262,9 @@ vasp_eigenval2bands [--input/-i <file>] [--kpoints/-k <file>]
 |---|---|---|
 | `--input/-i` | `EIGENVAL` | Input EIGENVAL file |
 | `--kpoints/-k` | `KPOINTS` | KPOINTS file from the band structure calculation |
-| `--fermi-source` | `doscar` | Fermi level source: `doscar`, `outcar`, `manual`, or `none` |
+| `--fermi-source` | `outcar` | Fermi level source: `doscar`, `outcar`, `manual`, or `none` |
 | `--doscar` | `DOSCAR` | DOSCAR file (used with `--fermi-source=doscar`) |
-| `--outcar` | `OUTCAR` | OUTCAR file (used with `--fermi-source=outcar`) |
+| `--outcar` | `OUTCAR` | OUTCAR file (required even without --fermi-source=outcar`) |
 | `--fermi/-e` | `0.0` | Manual Fermi level in eV (used with `--fermi-source=manual`) |
 
 One output file is written per k-path segment defined in the KPOINTS file. Energies are shifted so that the Fermi level is at 0 eV (unless `--fermi-source=none`).
