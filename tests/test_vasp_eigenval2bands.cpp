@@ -54,12 +54,19 @@ static void writeEigenval1(const char* path) {
 // nspin=2, 1 k-point, 2 bands
 static void writeEigenval2(const char* path) {
     FILE* f = std::fopen(path, "w");
-    std::fputs("h1\nh2\nh3\nh4\nh5\n", f);
-    std::fputs(" 1 1 2\n", f);  // NKPTS=1, NBANDS=2
+    std::fputs("header line 1\n", f);
+    std::fputs("0.1 0.1 0.1 0.5 2.0\n", f);
+    std::fputs("0.02\n", f);
+    std::fputs("CAR\n", f);
+    std::fputs("test system spin-polarized\n", f);
+    std::fputs(" 1 1 2\n", f);  // NIONS, NKPTS, NBANDS
+    // kpt 1
     std::fputs("\n", f);
     std::fputs("  0.0 0.0 0.0  1.0\n", f);
-    std::fputs(" 1  -1.0000  -1.5000\n", f);  // up, down
-    std::fputs(" 2   2.0000   1.8000\n", f);
+    // Band 1: Index, E_up, E_down, Occ_up, Occ_down
+    std::fputs(" 1  -1.0000  -1.5000  1.0000  1.0000\n", f);
+    // Band 2: Index, E_up, E_down, Occ_up, Occ_down
+    std::fputs(" 2   2.0000   1.8000  0.0000  0.0000\n", f);
     std::fclose(f);
 }
 
